@@ -18,7 +18,7 @@ Det var tydligen rätt viktigt att spectrumen var gjorda på samma sätt för at
 samma bild. Annars blev det att kärnan eller skalet fanns där men inte syntes varken i bilden eller spektrat då
 intensiteten var för låg. 
 '''
-sAg = hs.load("PureAgFilip.msa",signal_type="EDS_TEM")
+sAg = hs.load("PureAgFilip.msa",signal_type="EDS_TEM") #Ändrade till ett annat par av spektrum som hade samma tjocklek i DSTA-II
 sCu = hs.load("PureCuFilip.msa",signal_type="EDS_TEM") 
 
 #Tomma matriser med rätt dimensioner
@@ -58,29 +58,56 @@ p.get_calibration_from(sAg)
 p.axes_manager.indices = [25,25] #Sätter "pekaren" på mitten av partikeln, för att få spektrat från den punkten i plotten
 p.plot(True)                    
 
-im = p.get_lines_intensity()
-hs.plot.plot_images(im, tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
+im = p.get_lines_intensity()  #Tar ut två "bilder" en för varje xray signal dvs Ag och Cu
+hs.plot.plot_images(im,  cmap='RdYlBu_r', axes_decor='off',
     colorbar='single', vmin='1th', vmax='99th', scalebar='all',
     scalebar_color='black', suptitle_fontsize=16,
     padding={'top':0.8, 'bottom':0.10, 'left':0.05,
              'right':0.85, 'wspace':0.20, 'hspace':0.10})
 kfactors = [2.32, 1.58] # [Ag_La,Cu_Ka] tagna från Boken TransmissionElectronMicroscopy (finns på LUB). Cu är för Ka, Ag La+Lb
 
-q=p.inav[25,25].isig[0.0:10000.0]
-bw = q.estimate_background_windows(line_width=[5.0, 7.0])
+q=p.inav[25,25].isig[0.0:10000.0] #Tar ut ett spektra vid pixel 25,25 och skär ner på energiaxel till 0-10000eV
+bw = q.estimate_background_windows(line_width=[5.0, 7.0]) #Sätter vilket fönster som bakgrunden ska tas mellan relativt till varje xray-line som är vald
 
-intensities = q.get_lines_intensity(background_windows=bw)
-weight_percent = q.quantification(intensities, method='CL',
+intensities = q.get_lines_intensity(background_windows=bw)  #Tar fram intensiter för dessa xray lines
+weight_percent = q.quantification(intensities, method='CL', #Kvantifiering med Cliff-Lorimer tar ut i viktsprocent
                                   factors=kfactors,composition_units='weight')
-print("Vikt% Ag: "+str(weight_percent[0].data[0]))
+print("Vikt% Ag: "+str(weight_percent[0].data[0])) 
 print("Vikt% Cu: "+str(weight_percent[1].data[0]))
 
-wtAg = shell[25,25]/(shell[25,25]+core[25,25])
+wtAg = shell[25,25]/(shell[25,25]+core[25,25]) #Beräknar sammansättningen utfrån orginalmatris
 wtCu = core[25,25]/(shell[25,25]+core[25,25])
-print("Sann Vikt% Ag: "+str(wtAg))
-print("Sann Vikt% Cu: "+str(wtCu))
-q.plot(True, integration_windows='auto',background_windows=bw,fig=fig)
+print("Sann Vikt% Ag: "+str(wtAg)) 
+print("Sann Vikt% Cu: "+str(wtCu)) 
+q.plot(True, integration_windows='auto',background_windows=bw) #Plottar spektrat som används
 
-p.decomposition(algorithm='NMF',output_dimension = 3)
-factors = p.get_decomposition_factors()
-hs.plot.plot_spectra(factors,style='cascade')
+
+
+#En snabb titt på NMF av detta, kunde snabbt se att endast två faktorer var relevanta med tidigare test. 
+p.decomposition(algorithm='NMF',output_dimension = 2)
+factors = p.get_decomposition_factors() #Tar ut faktorerna dvs spektrum
+loadings =p.get_decomposition_loadings() #loadings är det återskapade bilderna baserat på faktorerna 
+
+#Plottar dem båda åter igen drar ner energiaxel till max 10keV för tydlighet
+hs.plot.plot_spectra(factors.isig[0.0:10000.0],style='cascade') 
+hs.plot.plot_images(loadings, cmap='mpl_colors',
+            axes_decor='off', per_row=1,
+            label=['Cu Core', 'Ag Shell'],
+            scalebar=[0], scalebar_color='white',
+            padding={'top': 0.95, 'bottom': 0.05,
+                     'left': 0.05, 'right':0.78})
+
+#Testar att kvantifiera core-faktorn återigen endast upp till 10keV
+core = factors.inav[0].isig[0.0:10000.0]
+core.add_elements(['Ag','Cu']) #Lägger in element igen tydligen förs de inte med 
+core.add_lines(['Ag_La','Cu_Ka'])
+corebw = core.estimate_background_windows(line_width=[5.0, 7.0]) 
+
+intensities = core.get_lines_intensity(background_windows=corebw)
+weight_percent = core.quantification(intensities, method='CL',
+                                  factors=kfactors,composition_units='weight')
+print("Vikt% Ag: "+str(weight_percent[0].data[0]))
+print("Vikt% Cu: "+str(weight_percent[1].data[0])) 
+
+
+#Väldigt likt det som fanns tidigare, vid den första kvantifieringen av grundspektrumet vid [25,25], blir nog lite att klura på om jag gjort rätt med allt
