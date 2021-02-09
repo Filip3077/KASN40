@@ -1,10 +1,11 @@
-%matplotlib qt
+
 import hyperspy.api as hs
 import math
 import numpy as np
 import matplotlib.pyplot as plt
 from edxmat import EdxMat
 import scipy.misc
+import sklearn
 
 x1=EdxMat(50,20.0,10.49,1.0)  #Den första hela "partikeln" som sen kommer bli skal (Ag)
 x2=EdxMat(50,15.0,10.49,1.0)  #Den andra mindre "partikeln" som kommer ta bort insidan så det blir ett skal (Ag)
@@ -18,7 +19,7 @@ Det var tydligen rätt viktigt att spectrumen var gjorda på samma sätt för at
 samma bild. Annars blev det att kärnan eller skalet fanns där men inte syntes varken i bilden eller spektrat då
 intensiteten var för låg. 
 '''
-sAg = hs.load("PureAgFilip.msa",signal_type="EDS_TEM") #Ändrade till ett annat par av spektrum som hade samma tjocklek i DSTA-II
+sAg = hs.load("PureAgFilip.msa",signal_type="EDS_TEM")
 sCu = hs.load("PureCuFilip.msa",signal_type="EDS_TEM") 
 
 #Tomma matriser med rätt dimensioner
@@ -64,7 +65,7 @@ hs.plot.plot_images(im,  cmap='RdYlBu_r', axes_decor='off',
     scalebar_color='black', suptitle_fontsize=16,
     padding={'top':0.8, 'bottom':0.10, 'left':0.05,
              'right':0.85, 'wspace':0.20, 'hspace':0.10})
-kfactors = [2.32, 1.58] # [Ag_La,Cu_Ka] tagna från Boken TransmissionElectronMicroscopy (finns på LUB). Cu är för Ka, Ag La+Lb
+kfactors = [2.32, 1.58] # [Ag_La,Cu_Ka] tagna från Boken TransmissionElectronMicroscopy (finns på LUB). Cu är för Ka, Ag La+Lb [
 
 q=p.inav[25,25].isig[0.0:10000.0] #Tar ut ett spektra vid pixel 25,25 och skär ner på energiaxel till 0-10000eV
 bw = q.estimate_background_windows(line_width=[5.0, 7.0]) #Sätter vilket fönster som bakgrunden ska tas mellan relativt till varje xray-line som är vald
@@ -84,7 +85,7 @@ q.plot(True, integration_windows='auto',background_windows=bw) #Plottar spektrat
 
 
 #En snabb titt på NMF av detta, kunde snabbt se att endast två faktorer var relevanta med tidigare test. 
-p.decomposition(algorithm='NMF',output_dimension = 2)
+p.decomposition(output_dimension = 2,algorithm='NMF')
 factors = p.get_decomposition_factors() #Tar ut faktorerna dvs spektrum
 loadings =p.get_decomposition_loadings() #loadings är det återskapade bilderna baserat på faktorerna 
 
@@ -109,5 +110,17 @@ weight_percent = core.quantification(intensities, method='CL',
 print("Vikt% Ag: "+str(weight_percent[0].data[0]))
 print("Vikt% Cu: "+str(weight_percent[1].data[0])) 
 
-
 #Väldigt likt det som fanns tidigare, vid den första kvantifieringen av grundspektrumet vid [25,25], blir nog lite att klura på om jag gjort rätt med allt
+
+p.blind_source_separation(number_of_components=2)#,algorithm="orthomax"
+bssfac = p.get_bss_factors()
+bssload = p.get_bss_loadings()
+
+hs.plot.plot_spectra(bssfac.isig[0.0:10000.0],style='cascade') 
+hs.plot.plot_images(bssload, cmap='mpl_colors',
+            axes_decor='off', per_row=1,
+            label=['Cu Core', 'Ag Shell'],
+            scalebar=[0], scalebar_color='white',
+            padding={'top': 0.95, 'bottom': 0.05,
+                     'left': 0.05, 'right':0.78})
+
