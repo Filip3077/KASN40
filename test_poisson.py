@@ -24,8 +24,8 @@ Det var tydligen rätt viktigt att spectrumen var gjorda på samma sätt för at
 samma bild. Annars blev det att kärnan eller skalet fanns där men inte syntes varken i bilden eller spektrat då
 intensiteten var för låg. 
 '''
-sAg = hs.load("PureAgFilip.msa",signal_type="EDS_TEM")
-sCu = hs.load("PureCuFilip.msa",signal_type="EDS_TEM") 
+sAg = hs.load("./Spectra/PureAgFilip.msa",signal_type="EDS_TEM")
+sCu = hs.load("./Spectra/PureCuFilip.msa",signal_type="EDS_TEM") 
 
 #Tomma matriser med rätt dimensioner
 arr = np.empty((50,50,2048)) 
@@ -87,6 +87,6 @@ print("Sann Vikt% Ag: "+str(wtAg))
 print("Sann Vikt% Cu: "+str(wtCu))
 q.plot(True, integration_windows='auto',background_windows=bw)
 
-p.decomposition(algorithm='NMF',output_dimension = 3)
-factors = p.get_decomposition_factors()
-hs.plot.plot_spectra(factors,style='cascade')
+#p.decomposition(algorithm='NMF',output_dimension = 3)
+#factors = p.get_decomposition_factors()
+#hs.plot.plot_spectra(factors,style='cascade')
