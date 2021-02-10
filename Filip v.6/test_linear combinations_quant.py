@@ -24,19 +24,19 @@ from sklearn.linear_model import LinearRegression
 MCu=63.55;#Mw Cu g/mol
 MAg=107.9;#Mw Agg/mol
 s=np.zeros((1,11,2048));
-sAg = hs.load("../MCSim 100% Cu.msa",signal_type="EDS_TEM")
+sAg = hs.load("../Spectra/MCSim 100% Cu.msa",signal_type="EDS_TEM")
 
-s[0][0]=hs.load("MCSim 100% Cu.msa",signal_type="EDS_TEM")
-s[0][1]=hs.load("MCSim 90Cu10Ag.msa", signal_type="EDS_TEM")
-s[0][2]=hs.load("MCSim 80Cu20Ag.msa", signal_type="EDS_TEM");
-s[0][3]=hs.load("MCSim 70Cu30Ag.msa", signal_type="EDS_TEM");
-s[0][4]=hs.load("MCSim 60Cu40Ag.msa", signal_type="EDS_TEM");
-s[0][5]=hs.load("MCSim 50Cu50Ag.msa", signal_type="EDS_TEM");
-s[0][6]=hs.load("MCSim 40Cu60Ag.msa", signal_type="EDS_TEM");
-s[0][7]=hs.load("MCSim 30Cu70Ag.msa", signal_type="EDS_TEM");
-s[0][8]=hs.load("MCSim 20Cu80Ag.msa", signal_type="EDS_TEM");
-s[0][9]=hs.load("MCSim 10Cu90Ag.msa", signal_type="EDS_TEM");
-s[0][10]=hs.load("MCSim 100% Ag.msa", signal_type="EDS_TEM");
+s[0][0]=hs.load("../Spectra/MCSim 100% Cu.msa",signal_type="EDS_TEM")
+s[0][1]=hs.load("../Spectra/MCSim 90Cu10Ag.msa", signal_type="EDS_TEM")
+s[0][2]=hs.load("../Spectra/MCSim 80Cu20Ag.msa", signal_type="EDS_TEM");
+s[0][3]=hs.load("../Spectra/MCSim 70Cu30Ag.msa", signal_type="EDS_TEM");
+s[0][4]=hs.load("../Spectra/MCSim 60Cu40Ag.msa", signal_type="EDS_TEM");
+s[0][5]=hs.load("../Spectra/MCSim 50Cu50Ag.msa", signal_type="EDS_TEM");
+s[0][6]=hs.load("../Spectra/MCSim 40Cu60Ag.msa", signal_type="EDS_TEM");
+s[0][7]=hs.load("../Spectra/MCSim 30Cu70Ag.msa", signal_type="EDS_TEM");
+s[0][8]=hs.load("../Spectra/MCSim 20Cu80Ag.msa", signal_type="EDS_TEM");
+s[0][9]=hs.load("../Spectra/MCSim 10Cu90Ag.msa", signal_type="EDS_TEM");
+s[0][10]=hs.load("../Spectra/MCSim 100% Ag.msa", signal_type="EDS_TEM");
 
 
 #Konverterar till ett Hyperspy objekt för att kunna lägga på metadata
