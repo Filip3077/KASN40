@@ -13,13 +13,18 @@ import matplotlib.pyplot as plt
 import hyperspy.api as hs
 import numpy as np
 import specerr as spe
+import pathlib
 from sklearn.linear_model import LinearRegression
+
+# from pathlib import Path
+# p = Path(r"C:\Users\Lucas\Documents\GitHub\KASN40\MCSim 100% Cu.msa")
+
 
 #Importera spektra av en kub med angiven sammansättning.
 MCu=63.55;#Mw Cu g/mol
 MAg=107.9;#Mw Agg/mol
 s=np.zeros((1,11,2048));
-sAg = hs.load("MCSim 100% Cu.msa",signal_type="EDS_TEM")
+sAg = hs.load("../MCSim 100% Cu.msa",signal_type="EDS_TEM")
 
 s[0][0]=hs.load("MCSim 100% Cu.msa",signal_type="EDS_TEM")
 s[0][1]=hs.load("MCSim 90Cu10Ag.msa", signal_type="EDS_TEM")
