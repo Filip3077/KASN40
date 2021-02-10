@@ -1,46 +1,40 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Feb  9 13:47:13 2021
-
-@author: Jonas
-"""
 %matplotlib qt
 import hyperspy.api as hs
+import math
 import numpy as np
-from coreshellp import *
+import matplotlib.pyplot as plt
 from edxmat import EdxMat
+from coreshellp import CoreShellP, CoreShellSpec
+import axmanageq
+import scipy.misc
+
+
+x=CoreShellP(50,20.0,15.0,10.49,8.96,1)#Skapar ett objekt med core- och shellmatriser
+core=x.core;
+shell=x.shell
 
 '''
 Det var tydligen rätt viktigt att spectrumen var gjorda på samma sätt för att man skulle kunna se skal och kärna i 
 samma bild. Annars blev det att kärnan eller skalet fanns där men inte syntes varken i bilden eller spektrat då
 intensiteten var för låg. 
 '''
-sAg = hs.load("10 nm Ag-kub.msa",signal_type="EDS_TEM")
-sCu = hs.load("10 nm Cu-kub.msa",signal_type="EDS_TEM") 
-sAg2 = hs.load("100 nm Ag-kub.msa",signal_type="EDS_TEM")
-sCu2 = hs.load("100 nm Cu-kub.msa",signal_type="EDS_TEM") 
-#Skapa matriser
-dens=1**(-3)#Enhet: nm^-3
-x=CoreShellP(50,10.0,9.0,dens,dens,1)#Längder i nm==> enhetslösa "volymfaktorer" om *dens
-core=x.core;
-shell=x.shell
+sAg = hs.load("PureAgFilip.msa",signal_type="EDS_TEM")
+sCu = hs.load("PureCuFilip.msa",signal_type="EDS_TEM") 
 
 Ag = sAg.data #Extraherar bara spectrumen från .msa-filerna
 Cu = sCu.data
-Ag2=sAg2.data
-Cu2=sCu2.data
-a=CoreShellSpec(x,Cu,Ag)
+
+a=CoreShellSpec(x,Cu,Ag);#Skapar 3D-matriserna a.core och a.shell (ekvivalenta med tidigare core3d och shell3d)
 
 #Nu slås de core och shell ihop och blir den fullständiga particeln:
-matr = a.shell + a.core
+matr=a.core+a.shell;
 maxval = np.max(matr)
-#matr = (1/maxval)*matr;
-#matr=matr/dens;
-p = hs.signals.Signal1D(matr)#Läser som HyperSpy-signal
-p.add_poissonian_noise(keep_dtype=True);#Lägger till Poisson-brus
-#p.data=(1/np.max(p.data))*p.data
-#p.data=1/(dens)*p.data;
+#matr = (matr/maxval*255).astype(np.uint8)  #Denna behövs nog inte till hyperspy men behövs om man ska göra en egentlig bild tror jag.
+
+p = hs.signals.Signal1D(matr) #Läser in matrisen som en hyperspysignal
+
 #Ett gäng metadata som kanske inte är nödvändigt men underlättar
+#axmanageq(matr)
 p.set_signal_type("EDS_TEM") 
 p.axes_manager.signal_axes[0].units = 'keV' #OBS! Enheten på energiaxeln är viktig för att kunna plotta
 p.axes_manager[0].name = 'y'
@@ -53,7 +47,7 @@ p.add_lines(['Ag_La','Cu_Ka'])
 
 p.get_calibration_from(sAg)
 p.axes_manager.indices = [25,25] #Sätter "pekaren" på mitten av partikeln, för att få spektrat från den punkten i plotten
-p.plot(True)           
+p.plot(True)                    
 
 im = p.get_lines_intensity()
 hs.plot.plot_images(im, tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
