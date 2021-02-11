@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from edxmat import EdxMat
 from coreshellp import CoreShellP, CoreShellSpec
-import axmanageq
+#import axmanageq
 import scipy.misc
 
 
@@ -18,8 +18,8 @@ Det var tydligen rätt viktigt att spectrumen var gjorda på samma sätt för at
 samma bild. Annars blev det att kärnan eller skalet fanns där men inte syntes varken i bilden eller spektrat då
 intensiteten var för låg. 
 '''
-sAg = hs.load("PureAgFilip.msa",signal_type="EDS_TEM")
-sCu = hs.load("PureCuFilip.msa",signal_type="EDS_TEM") 
+sAg = hs.load("./Spectra/PureAgFilip.msa",signal_type="EDS_TEM")
+sCu = hs.load("./Spectra/PureCuFilip.msa",signal_type="EDS_TEM") 
 
 Ag = sAg.data #Extraherar bara spectrumen från .msa-filerna
 Cu = sCu.data
