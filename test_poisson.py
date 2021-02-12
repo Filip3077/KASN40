@@ -15,10 +15,10 @@ Det var tydligen rätt viktigt att spectrumen var gjorda på samma sätt för at
 samma bild. Annars blev det att kärnan eller skalet fanns där men inte syntes varken i bilden eller spektrat då
 intensiteten var för låg. 
 '''
-sAg = hs.load("10 nm Ag-kub.msa",signal_type="EDS_TEM")
-sCu = hs.load("10 nm Cu-kub.msa",signal_type="EDS_TEM") 
-sAg2 = hs.load("100 nm Ag-kub.msa",signal_type="EDS_TEM")
-sCu2 = hs.load("100 nm Cu-kub.msa",signal_type="EDS_TEM") 
+sAg = hs.load("./Spectra/10 nm Ag-kub.msa",signal_type="EDS_TEM")
+sCu = hs.load("./Spectra/10 nm Cu-kub.msa",signal_type="EDS_TEM") 
+sAg2 = hs.load("./Spectra/100 nm Ag-kub.msa",signal_type="EDS_TEM")
+sCu2 = hs.load("./Spectra/100 nm Cu-kub.msa",signal_type="EDS_TEM") 
 #Skapa matriser
 dens=1**(-3)#Enhet: nm^-3
 x=CoreShellP(50,10.0,9.0,dens,dens,1)#Längder i nm==> enhetslösa "volymfaktorer" om *dens

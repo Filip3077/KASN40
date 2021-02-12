@@ -33,5 +33,6 @@ class EdxMat:
         mr=m-self.mid;
         l=self.l;
         r=self.r;
-        return math.sqrt(r**2-(nr*l)**2-(mr*l)**2);
+        return math.sqrt(r**2-(nr)**2-(mr)**2)*l**2; # Skrev om denna för tror inte
+                                                     # den gav thickness i volym.
     
