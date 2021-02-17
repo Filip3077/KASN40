@@ -23,20 +23,16 @@ from sklearn.linear_model import LinearRegression
 #Importera spektra av en kub med angiven sammansättning.
 MCu=63.55;#Mw Cu g/mol
 MAg=107.9;#Mw Agg/mol
-s=np.zeros((1,11,2048));
-sAg = hs.load("../Spectra/MCSim 100% Cu.msa",signal_type="EDS_TEM")
+s=np.zeros((1,6,2048));
+sCal = hs.load("../Spectra/Cu100.msa",signal_type="EDS_TEM")
 
-s[0][0]=hs.load("../Spectra/MCSim 100% Cu.msa",signal_type="EDS_TEM")
-s[0][1]=hs.load("../Spectra/MCSim 90Cu10Ag.msa", signal_type="EDS_TEM")
-s[0][2]=hs.load("../Spectra/MCSim 80Cu20Ag.msa", signal_type="EDS_TEM");
-s[0][3]=hs.load("../Spectra/MCSim 70Cu30Ag.msa", signal_type="EDS_TEM");
-s[0][4]=hs.load("../Spectra/MCSim 60Cu40Ag.msa", signal_type="EDS_TEM");
-s[0][5]=hs.load("../Spectra/MCSim 50Cu50Ag.msa", signal_type="EDS_TEM");
-s[0][6]=hs.load("../Spectra/MCSim 40Cu60Ag.msa", signal_type="EDS_TEM");
-s[0][7]=hs.load("../Spectra/MCSim 30Cu70Ag.msa", signal_type="EDS_TEM");
-s[0][8]=hs.load("../Spectra/MCSim 20Cu80Ag.msa", signal_type="EDS_TEM");
-s[0][9]=hs.load("../Spectra/MCSim 10Cu90Ag.msa", signal_type="EDS_TEM");
-s[0][10]=hs.load("../Spectra/MCSim 100% Ag.msa", signal_type="EDS_TEM");
+s[0][0]=hs.load("../Spectra/Cu100.msa",signal_type="EDS_TEM")
+s[0][1]=hs.load("../Spectra/Cu80Ag20.msa", signal_type="EDS_TEM");
+s[0][2]=hs.load("../Spectra/Cu60Ag40.msa", signal_type="EDS_TEM");
+s[0][3]=hs.load("../Spectra/Cu40Ag60.msa", signal_type="EDS_TEM");
+s[0][4]=hs.load("../Spectra/Cu20Ag80.msa", signal_type="EDS_TEM");
+s[0][5]=hs.load("../Spectra/Ag100.msa", signal_type="EDS_TEM");
+
 
 
 #Konverterar till ett Hyperspy objekt för att kunna lägga på metadata
@@ -50,7 +46,7 @@ p.axes_manager['y'].units = 'nm'
 p.axes_manager[-1].name = 'E'
 p.add_elements(['Ag','Cu']) 
 p.add_lines(['Ag_La','Cu_Ka'])  
-p.get_calibration_from(sAg)
+p.get_calibration_from(sCal)
 
 
 #Baserat på de spektrumen genererade av DSTA-II beräknas IAg/ICu för alla spektrum 
@@ -58,14 +54,17 @@ I = []
 for i in p:
     corebw = i.estimate_background_windows(line_width=[5.0, 7.0]) 
     intensities = i.get_lines_intensity(background_windows=corebw)
+    print(intensities[0].data[0])
+    print(intensities[1].data[0])
+    print("\n")
     I.append(intensities[0].data[0]/intensities[1].data[0])
     
     
 #Gör en passning för k-faktor till dessa intensiteter
-I = I[1:10]
+I = I[1:len(s[0])-1]
 I = np.asarray(I)
 I = I.reshape((-1,1))
-comp = np.linspace(0.1,0.9,9)
+comp = np.linspace(0.2,0.8,4)
 c = comp/(1-comp)
 
 model = LinearRegression()
@@ -86,7 +85,7 @@ sqerr=np.zeros(9);
 q = []
 
 #En linjärkombination motsvarande de simulerade spektrumen från DSTA
-for i in range(1,10):
+for i in range(1,5):
     spec2=(1-.1*i)*s[0][0]+.1*i*s[0][-1];
     abserr[i-1]=spe.SpecErrAbs(s[0][i],spec2);
     sqerr[i-1]=spe.SpecErrSq(s[0][i],spec2);
@@ -162,7 +161,7 @@ plt.title('Diff between true and calculated')
 plt.plot(comp,diff,'bo',comp,diff2,'ro')
 plt.xlabel('At% Ag')
 
-comp = np.linspace(0,1,11)
+comp = np.linspace(0,1,6)
 factors1 = [x/100 for x in factors1]
 factors2 = [x/100 for x in factors2]
 
