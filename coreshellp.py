@@ -26,18 +26,12 @@ class CoreShellP:
             z=EdxMat(size,r2,dens1,l)
             self.shell=x.mat-z.mat;
             self.core=y.mat;
-            # Normaliserar:
-            # maxval=np.max([np.max(self.core),np.max(self.shell)])
-            # self.shell=self.shell/maxval
-            # self.core=self.core/maxval
+            
         else:
             z=EdxMat(size,r1,dens2,l)
             self.shell=y.mat-z.mat;
             self.core=x.mat;
-            # Normaliserar:
-            # maxval=np.max([np.max(self.core),np.max(self.shell)])
-            # self.shell=self.shell/maxval
-            # self.core=self.core/maxval
+            
 
 class CoreShellSpec:
      def __init__(self,a,specCore,specShell):
