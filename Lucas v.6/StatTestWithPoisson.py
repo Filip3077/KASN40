@@ -47,9 +47,9 @@ hs.plot.plot_images(im, tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
     padding={'top':0.8, 'bottom':0.10, 'left':0.05,
              'right':0.85, 'wspace':0.20, 'hspace':0.10})
 
-# p.decomposition(True,algorithm="sklearn_pca") # Samma som s.decomposition(normalize_poissonian_noise=True,algorithm="sklearn_pca")
+p.decomposition(True,algorithm="sklearn_pca") # Samma som s.decomposition(normalize_poissonian_noise=True,algorithm="sklearn_pca")
 # #Scree plot för att avgöra rimlig mängd faktorer
-# p.plot_explained_variance_ratio(n=50)
+p.plot_explained_variance_ratio(n=50)
 
 
 # %% Baserat på Nicoletti et al. 
@@ -58,10 +58,18 @@ hs.plot.plot_images(im, tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
 projected gradient method NMF algorithm. The NMF was repeated for different numbers of components, ranging from four 
 to twelve, and showed that eight components were optimal.  
 '''
-for i in range(2,7):
+
+
+for i in range(2,13):
     dim = i
-    p.decomposition(algorithm='NMF',output_dimension =dim)
+    # p.decomposition(True,algorithm="sklearn_pca",output_dimension =dim)
+    p.decomposition(True,algorithm='NMF',output_dimension =dim)
     factors = p.get_decomposition_factors() #Tar ut faktorerna dvs spektrum
+    
+    for f in factors:
+
+        f.data /= f.data.max()
+    
     loadings =p.get_decomposition_loadings() #loadings är det återskapade bilderna baserat på faktorerna 
     hs.plot.plot_spectra(factors.isig[0.0:10000.0],style='cascade')
     plt.title('NMF'+str(i))
@@ -86,6 +94,9 @@ for i in range(2,7):
 
 
 # %%
+
+
+
 '''
 p.decomposition(algorithm='NMF',output_dimension =dim)
 factors = p.get_decomposition_factors() #Tar ut faktorerna dvs spektrum
