@@ -50,3 +50,4 @@ class CoreShellSpec:
                  shell[i,j,0:L]=a.shell[i,j]*spec2.data
          self.core=core;
          self.shell=shell;
+         self.base=a;#Ursprungliga CoreShellP-objektet det nya objekter är baserat på.
