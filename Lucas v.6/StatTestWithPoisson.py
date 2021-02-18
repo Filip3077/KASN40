@@ -15,8 +15,8 @@ from coreshellp import CoreShellP, CoreShellSpec
 dens = 1
 x = CoreShellP(50,20.0,15.0,dens,dens,1) #50x50 pixlar,r = 20nm (d=40),core r = 15nm, "densities=1nm^-3", pixel length 1nm
 
-sAg = hs.load("../Spectra/MCSim 10Cu90Ag.msa",signal_type="EDS_TEM")
-sCu = hs.load("../Spectra/MCSim 90Cu10Ag.msa",signal_type="EDS_TEM") 
+sAg = hs.load("../Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")
+sCu = hs.load("../Spectra/20nm cube Cu80Ag20.msa",signal_type="EDS_TEM") 
 a = CoreShellSpec(x,sCu,sAg)
 particle = a.core + a.shell
 
@@ -34,7 +34,7 @@ p.axes_manager[-1].name = 'E'
 p.add_elements(['Ag','Cu']) #Lägger in ämnen igen tydligen förs de inte med 
 p.add_lines(['Ag_La','Cu_Ka'])
 
-cal = hs.load("../Spectra/AgCu.msa",signal_type="EDS_TEM")
+cal = hs.load("../Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")
 p.get_calibration_from(cal)
 p.axes_manager.indices = [25,25] #Sätter "pekaren" på mitten av partikeln, för att få spektrat från den punkten i plotten
 #p.plot(True)  
@@ -47,9 +47,9 @@ hs.plot.plot_images(im, tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
     padding={'top':0.8, 'bottom':0.10, 'left':0.05,
              'right':0.85, 'wspace':0.20, 'hspace':0.10})
 
-p.decomposition(True,algorithm="sklearn_pca") # Samma som s.decomposition(normalize_poissonian_noise=True,algorithm="sklearn_pca")
-# #Scree plot för att avgöra rimlig mängd faktorer
-p.plot_explained_variance_ratio(n=50)
+# p.decomposition(True,algorithm="sklearn_pca") # Samma som s.decomposition(normalize_poissonian_noise=True,algorithm="sklearn_pca")
+# # #Scree plot för att avgöra rimlig mängd faktorer
+# p.plot_explained_variance_ratio(n=50)
 
 
 # %% Baserat på Nicoletti et al. 
@@ -60,35 +60,56 @@ to twelve, and showed that eight components were optimal.
 '''
 
 
-for i in range(2,13):
+for i in range(2,4):
     dim = i
-    # p.decomposition(True,algorithm="sklearn_pca",output_dimension =dim)
-    p.decomposition(True,algorithm='NMF',output_dimension =dim)
-    factors = p.get_decomposition_factors() #Tar ut faktorerna dvs spektrum
+    #p.decomposition(True,algorithm="sklearn_pca",output_dimension =dim)
+    p.decomposition(algorithm='ORNMF',output_dimension =dim)
+    p.plot_decomposition_results()
+    # factors = p.get_decomposition_factors() #Tar ut faktorerna dvs spektrum
     
-    for f in factors:
+    # for f in factors:
 
-        f.data /= f.data.max()
+    #     f.data /= f.data.max()
     
-    loadings =p.get_decomposition_loadings() #loadings är det återskapade bilderna baserat på faktorerna 
-    hs.plot.plot_spectra(factors.isig[0.0:10000.0],style='cascade')
-    plt.title('NMF'+str(i))
-    plt.text(x=8040, y=0.8, s='Cu-K$_\\alpha$', color='k')
-    plt.axvline(8040, c='k', ls=':', lw=0.5)
-    plt.text(x=930, y=0.8, s='Cu-L$_\\alpha$', color='k')
-    plt.axvline(930, c='k', ls=':', lw=0.5)
-    plt.axvline(2984, c='k', ls=':', lw=0.5)
-    plt.text(x=2984, y=0.8, s='Ag-L$_\\alpha$', color='k')
-    # plt.axvline(277, c='k', ls=':', lw=0.5)
-    # plt.text(x=277, y=0.8, s='C-K$_\\alpha$', color='k')
-    # plt.axvline(1740, c='k', ls=':', lw=0.5)
-    # plt.text(x=1740, y=0.8, s='Si-K$_\\alpha$', color='k')
+    # loadings =p.get_decomposition_loadings() #loadings är det återskapade bilderna baserat på faktorerna 
+    # hs.plot.plot_spectra(factors.isig[0.0:10000.0],style='cascade')
+    # plt.title('NMF'+str(i))
+    # plt.text(x=8040, y=0.8, s='Cu-K$_\\alpha$', color='k')
+    # plt.axvline(8040, c='k', ls=':', lw=0.5)
+    # plt.text(x=930, y=0.8, s='Cu-L$_\\alpha$', color='k')
+    # plt.axvline(930, c='k', ls=':', lw=0.5)
+    # plt.axvline(2984, c='k', ls=':', lw=0.5)
+    # plt.text(x=2984, y=0.8, s='Ag-L$_\\alpha$', color='k')
+    # # plt.axvline(277, c='k', ls=':', lw=0.5)
+    # # plt.text(x=277, y=0.8, s='C-K$_\\alpha$', color='k')
+    # # plt.axvline(1740, c='k', ls=':', lw=0.5)
+    # # plt.text(x=1740, y=0.8, s='Si-K$_\\alpha$', color='k')
     
-    hs.plot.plot_images(loadings, cmap='mpl_colors',
-                        axes_decor='off', per_row=3,
-                        scalebar=[0], scalebar_color='white',
-                        padding={'top': 0.95, 'bottom': 0.05,
-                                 'left': 0.05, 'right':0.78})
+    # hs.plot.plot_images(loadings, cmap='mpl_colors',
+    #                     axes_decor='off', per_row=3,
+    #                     scalebar=[0], scalebar_color='white',
+    #                     padding={'top': 0.95, 'bottom': 0.05,
+    #                              'left': 0.05, 'right':0.78})
+    
+    # p.blind_source_separation(number_of_components=dim)#,algorithm="orthomax"
+    # bssfac = p.get_bss_factors()
+    # bssload = p.get_bss_loadings()
+    
+    # hs.plot.plot_spectra(bssfac.isig[0.0:10000.0],style='cascade') 
+    # plt.title('NMF+BSS with fastICA')
+    # plt.axvline(8040, c='k', ls=':', lw=0.5)
+    # plt.text(x=8040, y=1.6, s='Cu-K$_\\alpha$', color='k')
+    # plt.axvline(2984, c='k', ls=':', lw=0.5)
+    # plt.text(x=2984, y=1.6, s='Ag-L$_\\alpha$', color='k')
+    # plt.axvline(930, c='k', ls=':', lw=0.5)
+    # plt.text(x=930, y=1.6, s='Cu-L$_\\alpha$', color='k')
+
+
+    # hs.plot.plot_images(bssload, cmap='mpl_colors',
+    #                     axes_decor='off', per_row=3,
+    #             scalebar=[0], scalebar_color='white',
+    #             padding={'top': 0.95, 'bottom': 0.05,
+    #                  'left': 0.05, 'right':0.78})
 
 
 
