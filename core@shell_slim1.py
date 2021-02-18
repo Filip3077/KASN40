@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from edxmat import EdxMat
 from coreshellp import CoreShellP, CoreShellSpec
-#import axmanageq
 import scipy.misc
 
 
