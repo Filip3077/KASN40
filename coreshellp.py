@@ -26,21 +26,13 @@ class CoreShellP:
             z=EdxMat(size,r2,dens1,l)
             self.shell=x.mat-z.mat;
             self.core=y.mat;
-            # Normaliserar:
-            # maxval=np.max([np.max(self.core),np.max(self.shell)])
-            # self.shell=self.shell/maxval
-            # self.core=self.core/maxval
         else:
             z=EdxMat(size,r1,dens2,l)
             self.shell=y.mat-z.mat;
             self.core=x.mat;
-            # Normaliserar:
-            # maxval=np.max([np.max(self.core),np.max(self.shell)])
-            # self.shell=self.shell/maxval
-            # self.core=self.core/maxval
 
 class CoreShellSpec:
-     def __init__(self,a,specCore,specShell):
+     def __init__(self,a,spec1,spec2):
          '''Takes a CoreShellP object a and inserts the core spectrum \n
          spec1 and the shell spectrum spec2 at the appropriate places.\n
          Both spectra must be HyperSpy 1D signals.'''
@@ -48,13 +40,14 @@ class CoreShellSpec:
          #att skapa själva matrisen som skall bli HyperSpy-signalen.
          #För att skapa den slutgiltiga matrisen som skall in i hs.signals.Signal1D()
          #skapar man en ny matris x=self.core+self.shell.
-         L=len(specCore.data)
+         L=len(spec1.data)
          arr=np.empty((a.size,a.size,L))
          core=arr.copy()
          shell = arr.copy()
          for i in range(0,a.size):
              for j in range(0,a.size):
-                 core[i,j,0:L]=a.core[i,j]*specCore.data
-                 shell[i,j,0:L]=a.shell[i,j]*specShell.data
+                 core[i,j,0:L]=a.core[i,j]*spec1.data
+                 shell[i,j,0:L]=a.shell[i,j]*spec2.data
          self.core=core;
          self.shell=shell;
+         self.base=a;#Ursprungliga CoreShellP-objektet det nya objekter är baserat på.
