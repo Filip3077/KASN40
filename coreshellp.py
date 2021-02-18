@@ -31,22 +31,24 @@ class CoreShellP:
             self.shell=y.mat-z.mat;
             self.core=x.mat;
 
-class CoreShellSpec:
-     def __init__(self,a,spec1,spec2):
-         '''Takes a CoreShellP object a and inserts the core spectrum \n
-         spec1 and the shell spectrum spec2 at the appropriate places.\n
-         Both spectra must be HyperSpy 1D signals.'''
-         #Klassen reproducerar i princip delar av det manuella arbetet i core@shell.py för
-         #att skapa själva matrisen som skall bli HyperSpy-signalen.
-         #För att skapa den slutgiltiga matrisen som skall in i hs.signals.Signal1D()
-         #skapar man en ny matris x=self.core+self.shell.
-         L=len(spec1.data)
-         arr=np.empty((a.size,a.size,L))
-         core=arr.copy()
-         shell = arr.copy()
-         for i in range(0,a.size):
-             for j in range(0,a.size):
-                 core[i,j,0:L]=a.core[i,j]*spec1.data
-                 shell[i,j,0:L]=a.shell[i,j]*spec2.data
-         self.core=core;
-         self.shell=shell;
+
+def CoreShellSpec(a,spec1,spec2):
+    '''Takes a CoreShellP object a and inserts the core spectrum \n
+    spec1 and the shell spectrum spec2 at the appropriate places.\n
+    Both spectra must be HyperSpy 1D signals.'''
+    #Klassen reproducerar i princip delar av det manuella arbetet i core@shell.py för
+    #att skapa själva matrisen som skall bli HyperSpy-signalen.
+    #För att skapa den slutgiltiga matrisen som skall in i hs.signals.Signal1D()
+    #skapar man en ny matris x=self.core+self.shell.
+    L=len(spec1.data)
+    arr=np.empty((a.size,a.size,L))
+    core=arr.copy()
+    shell = arr.copy()
+    for i in range(0,a.size):
+        for j in range(0,a.size):
+            core[i,j,0:L]=a.core[i,j]*spec1.data
+            shell[i,j,0:L]=a.shell[i,j]*spec2.data
+    
+    coreShell = hs.signals.Signal1D(core+shell)
+    return coreShell
+    
