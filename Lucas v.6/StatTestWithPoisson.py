@@ -16,7 +16,7 @@ dens = 1
 x = CoreShellP(50,20.0,15.0,dens,dens,1) #50x50 pixlar,r = 20nm (d=40),core r = 15nm, "densities=1nm^-3", pixel length 1nm
 
 sAg = hs.load("../Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")
-sCu = hs.load("../Spectra/20nm cube Cu80Ag20.msa",signal_type="EDS_TEM") 
+sCu = hs.load("../Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM") 
 a = CoreShellSpec(x,sCu,sAg)
 particle = a.core + a.shell
 
@@ -60,56 +60,53 @@ to twelve, and showed that eight components were optimal.
 '''
 
 
-for i in range(2,4):
+for i in range(6,7):
     dim = i
     #p.decomposition(True,algorithm="sklearn_pca",output_dimension =dim)
-    p.decomposition(algorithm='ORNMF',output_dimension =dim)
-    p.plot_decomposition_results()
-    # factors = p.get_decomposition_factors() #Tar ut faktorerna dvs spektrum
+    p.decomposition(True,algorithm='NMF',output_dimension =dim)
+    #p.plot_decomposition_results()
+    factors = p.get_decomposition_factors() #Tar ut faktorerna dvs spektrum
     
-    # for f in factors:
+    for f in factors:
 
-    #     f.data /= f.data.max()
+        f.data /= f.data.max()
     
-    # loadings =p.get_decomposition_loadings() #loadings är det återskapade bilderna baserat på faktorerna 
-    # hs.plot.plot_spectra(factors.isig[0.0:10000.0],style='cascade')
-    # plt.title('NMF'+str(i))
-    # plt.text(x=8040, y=0.8, s='Cu-K$_\\alpha$', color='k')
-    # plt.axvline(8040, c='k', ls=':', lw=0.5)
-    # plt.text(x=930, y=0.8, s='Cu-L$_\\alpha$', color='k')
-    # plt.axvline(930, c='k', ls=':', lw=0.5)
-    # plt.axvline(2984, c='k', ls=':', lw=0.5)
-    # plt.text(x=2984, y=0.8, s='Ag-L$_\\alpha$', color='k')
-    # # plt.axvline(277, c='k', ls=':', lw=0.5)
-    # # plt.text(x=277, y=0.8, s='C-K$_\\alpha$', color='k')
-    # # plt.axvline(1740, c='k', ls=':', lw=0.5)
-    # # plt.text(x=1740, y=0.8, s='Si-K$_\\alpha$', color='k')
+    loadings =p.get_decomposition_loadings() #loadings är det återskapade bilderna baserat på faktorerna 
+    hs.plot.plot_spectra(factors.isig[0.0:10000.0],style='cascade')
+    plt.title('NMF'+str(i))
+    plt.text(x=8040, y=0.8, s='Cu-K$_\\alpha$', color='k')
+    plt.axvline(8040, c='k', ls=':', lw=0.5)
+    plt.text(x=930, y=0.8, s='Cu-L$_\\alpha$', color='k')
+    plt.axvline(930, c='k', ls=':', lw=0.5)
+    plt.axvline(2984, c='k', ls=':', lw=0.5)
+    plt.text(x=2984, y=0.8, s='Ag-L$_\\alpha$', color='k')
+
     
-    # hs.plot.plot_images(loadings, cmap='mpl_colors',
-    #                     axes_decor='off', per_row=3,
-    #                     scalebar=[0], scalebar_color='white',
-    #                     padding={'top': 0.95, 'bottom': 0.05,
-    #                              'left': 0.05, 'right':0.78})
+    hs.plot.plot_images(loadings, cmap='mpl_colors',
+                        axes_decor='off', per_row=3,
+                        scalebar=[0], scalebar_color='white',
+                        padding={'top': 0.95, 'bottom': 0.05,
+                                  'left': 0.05, 'right':0.78})
     
-    # p.blind_source_separation(number_of_components=dim)#,algorithm="orthomax"
-    # bssfac = p.get_bss_factors()
-    # bssload = p.get_bss_loadings()
+    p.blind_source_separation(number_of_components=dim)#,algorithm="orthomax"
+    bssfac = p.get_bss_factors()
+    bssload = p.get_bss_loadings()
     
-    # hs.plot.plot_spectra(bssfac.isig[0.0:10000.0],style='cascade') 
-    # plt.title('NMF+BSS with fastICA')
-    # plt.axvline(8040, c='k', ls=':', lw=0.5)
-    # plt.text(x=8040, y=1.6, s='Cu-K$_\\alpha$', color='k')
-    # plt.axvline(2984, c='k', ls=':', lw=0.5)
-    # plt.text(x=2984, y=1.6, s='Ag-L$_\\alpha$', color='k')
-    # plt.axvline(930, c='k', ls=':', lw=0.5)
-    # plt.text(x=930, y=1.6, s='Cu-L$_\\alpha$', color='k')
+    hs.plot.plot_spectra(bssfac.isig[0.0:10000.0],style='cascade') 
+    plt.title('NMF+BSS with fastICA')
+    plt.axvline(8040, c='k', ls=':', lw=0.5)
+    plt.text(x=8040, y=1.6, s='Cu-K$_\\alpha$', color='k')
+    plt.axvline(2984, c='k', ls=':', lw=0.5)
+    plt.text(x=2984, y=1.6, s='Ag-L$_\\alpha$', color='k')
+    plt.axvline(930, c='k', ls=':', lw=0.5)
+    plt.text(x=930, y=1.6, s='Cu-L$_\\alpha$', color='k')
 
 
-    # hs.plot.plot_images(bssload, cmap='mpl_colors',
-    #                     axes_decor='off', per_row=3,
-    #             scalebar=[0], scalebar_color='white',
-    #             padding={'top': 0.95, 'bottom': 0.05,
-    #                  'left': 0.05, 'right':0.78})
+    hs.plot.plot_images(bssload, cmap='mpl_colors',
+                        axes_decor='off', per_row=3,
+                scalebar=[0], scalebar_color='white',
+                padding={'top': 0.95, 'bottom': 0.05,
+                      'left': 0.05, 'right':0.78})
 
 
 
@@ -117,50 +114,3 @@ for i in range(2,4):
 # %%
 
 
-
-'''
-p.decomposition(algorithm='NMF',output_dimension =dim)
-factors = p.get_decomposition_factors() #Tar ut faktorerna dvs spektrum
-loadings =p.get_decomposition_loadings() #loadings är det återskapade bilderna baserat på faktorerna 
-p.blind_source_separation(number_of_components=dim)#,algorithm="orthomax"
-bssfac = p.get_bss_factors()
-bssload = p.get_bss_loadings()
-
-plt.title('NMF')
-plt.text(x=8040, y=0.8, s='Cu-K$_\\alpha$', color='k')
-plt.axvline(8040, c='k', ls=':', lw=0.5)
-plt.text(x=930, y=0.8, s='Cu-L$_\\alpha$', color='k')
-plt.axvline(930, c='k', ls=':', lw=0.5)
-plt.axvline(2984, c='k', ls=':', lw=0.5)
-plt.text(x=2984, y=0.8, s='Ag-L$_\\alpha$', color='k')
-plt.axvline(277, c='k', ls=':', lw=0.5)
-plt.text(x=277, y=0.8, s='C-K$_\\alpha$', color='k')
-plt.axvline(1740, c='k', ls=':', lw=0.5)
-plt.text(x=1740, y=0.8, s='Si-K$_\\alpha$', color='k')
-
-hs.plot.plot_images(loadings, cmap='mpl_colors',
-            axes_decor='off', per_row=3,
-            scalebar=[0], scalebar_color='white',
-            padding={'top': 0.95, 'bottom': 0.05,
-                     'left': 0.05, 'right':0.78})
-
-#Plottar motvarande fast nu för BSS/fastICA
-hs.plot.plot_spectra(bssfac.isig[0.0:10000.0],style='cascade') 
-plt.title('NMF+BSS with fastICA')
-plt.axvline(8040, c='k', ls=':', lw=0.5)
-plt.text(x=8040, y=1.6, s='Cu-K$_\\alpha$', color='k')
-plt.axvline(2984, c='k', ls=':', lw=0.5)
-plt.text(x=2984, y=1.6, s='Ag-L$_\\alpha$', color='k')
-plt.axvline(930, c='k', ls=':', lw=0.5)
-plt.text(x=930, y=1.6, s='Cu-L$_\\alpha$', color='k')
-plt.axvline(277, c='k', ls=':', lw=0.5)
-plt.text(x=277, y=1.6, s='C-K$_\\alpha$', color='k')
-plt.axvline(1740, c='k', ls=':', lw=0.5)
-plt.text(x=1740, y=1.6, s='Si-K$_\\alpha$', color='k')
-
-hs.plot.plot_images(bssload, cmap='mpl_colors',
-            axes_decor='off', per_row=3,
-            scalebar=[0], scalebar_color='white',
-            padding={'top': 0.95, 'bottom': 0.05,
-                     'left': 0.05, 'right':0.78})
-'''
