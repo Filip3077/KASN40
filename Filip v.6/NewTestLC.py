@@ -38,7 +38,6 @@ I = []
 for spectrum in s:
     bg = spectrum.estimate_background_windows(line_width=[5.0, 7.0]) 
     intensities = spectrum.get_lines_intensity(background_windows=bg)
-    print(I)
     I.append(intensities[1].data[0]/intensities[0].data[0])
 
 I2 = np.array(I[1:-1]).reshape(-1,1)
