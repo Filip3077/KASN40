@@ -14,7 +14,7 @@ s = hs.load("../Spectra/MC simulation of  a 0.020 µm base, 0.020 µm high block
 
 sCu = s.inav[-2]
 sAg  = s.inav[1]
-sCarbon = hs.load("../Spectra/Carbonbackground.msa",signal_type="EDS_TEM")
+sC = hs.load("../Spectra/Carbonbackground.msa",signal_type="EDS_TEM")
 
 size = 200
 cs_mat = CoreShellP(size,20.0e-9,15.0e-9,10.49,8.96,1e-9)
@@ -25,7 +25,8 @@ csShell.add_poissonian_noise(keep_dtype=True)
 csCore = addSpectrum(cs_mat.core,sCu,1e-6)
 csCore.add_poissonian_noise(keep_dtype=True)
 
-cMat = np.zeros((size,size,len(sCarbon.data)))
+carbonMat = np.ones((size,size))
+sCarbon = addSpectrum(carbonMat,sC,1)
 
 sCarbon.add_poissonian_noise(keep_dtype=True)
 
@@ -47,3 +48,15 @@ hs.plot.plot_images(im, tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
     scalebar_color='black', suptitle_fontsize=16,
     padding={'top':0.8, 'bottom':0.10, 'left':0.05,
              'right':0.85, 'wspace':0.20, 'hspace':0.10})
+
+cs.decomposition(output_dimension = 3,algorithm='NMF')
+NMF_facs = cs.get_decomposition_factors()
+NMF_loads = cs.get_decomposition_loadings()
+
+hs.plot.plot_spectra(NMF_facs.isig[0.0:10000.0],style='cascade') 
+hs.plot.plot_images(NMF_loads, cmap='mpl_colors',
+            axes_decor='off', per_row=1,
+            label=['Cu Core', 'Ag Shell'],
+            scalebar=[0], scalebar_color='white',
+            padding={'top': 0.95, 'bottom': 0.05,
+                     'left': 0.05, 'right':0.78})
