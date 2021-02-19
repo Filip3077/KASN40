@@ -53,3 +53,8 @@ class CoreShellSpec:
          self.core=core;
          self.shell=shell;
          self.base=a;#Ursprungliga CoreShellP-objektet det nya objekter är baserat på.
+    
+     def getmatr(self):
+         '''Returns the matrix representing the entire core-shell particle'''
+         return self.core+self.shell #Metod som returnerar den sökta matrisen
+     #För att skapa matrisen i ett kommando, skriv 'matr=CoreShellSpec(a,spec1,spec2).getmatr()
