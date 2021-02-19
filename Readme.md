@@ -1,6 +1,5 @@
 # En Readme om hur jag tänker att vi kan använda GitHub
 
-Som ni ser har jag "fixat" en del... Jag borde skrivit fixar git för att vara tydligare men det är basicly det jag gjort iaf.
 
 Min tanke är att vi använder git mer som det är skapt för nu genom att man gör sin branch när man vill fixa något, det kan vara nya skript, edits på befintliga, lägga till filer etc. Jag har inte bestämt mig än, men tror det blir bäst att använda mappar som "Filip v.6" tills vi har en konkret skelletmetod som vi alla jobbar i. 
 

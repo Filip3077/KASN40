@@ -13,26 +13,27 @@ import matplotlib.pyplot as plt
 import hyperspy.api as hs
 import numpy as np
 import specerr as spe
-import pathlib
 from sklearn.linear_model import LinearRegression
 
-# from pathlib import Path
-# p = Path(r"C:\Users\Lucas\Documents\GitHub\KASN40\MCSim 100% Cu.msa")
 
 
 #Importera spektra av en kub med angiven sammansättning.
 MCu=63.55;#Mw Cu g/mol
-MAg=107.9;#Mw Agg/mol
-s=np.zeros((1,6,2048));
-sCal = hs.load("../Spectra/Cu100.msa",signal_type="EDS_TEM")
+MAg=107.9;#Mw Ag g/mol
+s=np.zeros((1,11,2048));
+sAg = hs.load("../Spectra/MCSim 100% Cu.msa",signal_type="EDS_TEM")
 
-s[0][0]=hs.load("../Spectra/Cu100.msa",signal_type="EDS_TEM")
-s[0][1]=hs.load("../Spectra/Cu80Ag20.msa", signal_type="EDS_TEM");
-s[0][2]=hs.load("../Spectra/Cu60Ag40.msa", signal_type="EDS_TEM");
-s[0][3]=hs.load("../Spectra/Cu40Ag60.msa", signal_type="EDS_TEM");
-s[0][4]=hs.load("../Spectra/Cu20Ag80.msa", signal_type="EDS_TEM");
-s[0][5]=hs.load("../Spectra/Ag100.msa", signal_type="EDS_TEM");
-
+s[0][0]=hs.load("../Spectra/MCSim 100% Cu.msa",signal_type="EDS_TEM")
+s[0][1]=hs.load("../Spectra/MCSim 90Cu10Ag.msa", signal_type="EDS_TEM")
+s[0][2]=hs.load("../Spectra/MCSim 80Cu20Ag.msa", signal_type="EDS_TEM");
+s[0][3]=hs.load("../Spectra/MCSim 70Cu30Ag.msa", signal_type="EDS_TEM");
+s[0][4]=hs.load("../Spectra/MCSim 60Cu40Ag.msa", signal_type="EDS_TEM");
+s[0][5]=hs.load("../Spectra/MCSim 50Cu50Ag.msa", signal_type="EDS_TEM");
+s[0][6]=hs.load("../Spectra/MCSim 40Cu60Ag.msa", signal_type="EDS_TEM");
+s[0][7]=hs.load("../Spectra/MCSim 30Cu70Ag.msa", signal_type="EDS_TEM");
+s[0][8]=hs.load("../Spectra/MCSim 20Cu80Ag.msa", signal_type="EDS_TEM");
+s[0][9]=hs.load("../Spectra/MCSim 10Cu90Ag.msa", signal_type="EDS_TEM");
+s[0][10]=hs.load("../Spectra/MCSim 100% Ag.msa", signal_type="EDS_TEM");
 
 
 #Konverterar till ett Hyperspy objekt för att kunna lägga på metadata
