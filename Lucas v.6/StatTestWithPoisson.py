@@ -10,13 +10,14 @@ import matplotlib.pyplot as plt
 import hyperspy.api as hs
 import numpy as np
 from coreshellp import CoreShellP, CoreShellSpec
-#from edxmat import EdxMat
 
 dens = 1
 x = CoreShellP(50,20.0,15.0,dens,dens,1) #50x50 pixlar,r = 20nm (d=40),core r = 15nm, "densities=1nm^-3", pixel length 1nm
 
-sAg = hs.load("../Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")
-sCu = hs.load("../Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM") 
+sAgp = hs.load("../Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
+sCup = hs.load("../Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM") 
+sAg = 0.88*sAgp.data + 0.12*sCup.data
+sCu = 0.9*sCup.data + 0.1*sAgp.data
 a = CoreShellSpec(x,sCu,sAg)
 particle = a.core + a.shell
 
@@ -60,16 +61,16 @@ to twelve, and showed that eight components were optimal.
 '''
 
 
-for i in range(6,7):
+for i in range(2,3):
     dim = i
     #p.decomposition(True,algorithm="sklearn_pca",output_dimension =dim)
     p.decomposition(True,algorithm='NMF',output_dimension =dim)
     #p.plot_decomposition_results()
     factors = p.get_decomposition_factors() #Tar ut faktorerna dvs spektrum
     
-    for f in factors:
+    # for f in factors:
 
-        f.data /= f.data.max()
+    #     f.data /= f.data.max()
     
     loadings =p.get_decomposition_loadings() #loadings är det återskapade bilderna baserat på faktorerna 
     hs.plot.plot_spectra(factors.isig[0.0:10000.0],style='cascade')
@@ -111,6 +112,90 @@ for i in range(6,7):
 
 
 
-# %%
+# %% Kvantifikation
+
+core_spec = np.sum(a.core,(0,1))
+shell_spec = np.sum(a.shell,(0,1))
 
 
+co = hs.signals.Signal1D(core_spec)
+sh = hs.signals.Signal1D(shell_spec)
+co.set_signal_type("EDS_TEM")
+sh.set_signal_type("EDS_TEM")
+co.axes_manager.signal_axes[0].units = 'keV'
+sh.axes_manager.signal_axes[0].units = 'keV'
+co.add_elements(['Ag','Cu'])
+sh.add_elements(['Ag','Cu'])
+co.add_lines(['Ag_La','Cu_Ka'])
+sh.add_lines(['Ag_La','Cu_Ka'])
+
+cal = hs.load("../Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")
+co.get_calibration_from(cal)
+sh.get_calibration_from(cal)
+
+
+kfactors = [1.0, 0.72980399]
+bw = co.estimate_background_windows(line_width=[5.0, 2.0])
+intensities = co.get_lines_intensity(background_windows=bw)
+weight_percent_cu_core = co.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[1].data
+weight_percent_ag_core = co.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[0].data
+
+bw = sh.estimate_background_windows(line_width=[5.0, 2.0])
+intensities = sh.get_lines_intensity(background_windows=bw)
+weight_percent_cu_shell = sh.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[1].data
+weight_percent_ag_shell = sh.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[0].data
+
+NMFfac = factors.data
+NMFco = hs.signals.Signal1D(NMFfac[0])
+NMFsh = hs.signals.Signal1D(NMFfac[1])
+NMFco.set_signal_type("EDS_TEM")
+NMFsh.set_signal_type("EDS_TEM")
+NMFco.axes_manager.signal_axes[0].units = 'keV'
+NMFsh.axes_manager.signal_axes[0].units = 'keV'
+NMFco.add_elements(['Ag','Cu'])
+NMFsh.add_elements(['Ag','Cu'])
+NMFco.add_lines(['Ag_La','Cu_Ka'])
+NMFsh.add_lines(['Ag_La','Cu_Ka'])
+
+NMFco.get_calibration_from(cal)
+NMFsh.get_calibration_from(cal)
+
+bw = NMFco.estimate_background_windows(line_width=[5.0, 2.0])
+intensities = NMFco.get_lines_intensity(background_windows=bw)
+NMFweight_percent_cu_core = NMFco.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[1].data
+NMFweight_percent_ag_core = NMFco.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[0].data
+
+bw = NMFsh.estimate_background_windows(line_width=[5.0, 2.0])
+intensities = NMFsh.get_lines_intensity(background_windows=bw)
+NMFweight_percent_cu_shell = NMFsh.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[1].data
+NMFweight_percent_ag_shell = NMFsh.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[0].data
+
+BSSfac = bssfac.data
+BSSco = hs.signals.Signal1D(BSSfac[0])
+BSSsh = hs.signals.Signal1D(BSSfac[1])
+BSSco.set_signal_type("EDS_TEM")
+BSSsh.set_signal_type("EDS_TEM")
+BSSco.axes_manager.signal_axes[0].units = 'keV'
+BSSsh.axes_manager.signal_axes[0].units = 'keV'
+BSSco.add_elements(['Ag','Cu'])
+BSSsh.add_elements(['Ag','Cu'])
+BSSco.add_lines(['Ag_La','Cu_Ka'])
+BSSsh.add_lines(['Ag_La','Cu_Ka'])
+
+BSSco.get_calibration_from(cal)
+BSSsh.get_calibration_from(cal)
+
+bw = BSSco.estimate_background_windows(line_width=[5.0, 2.0])
+intensities = NMFco.get_lines_intensity(background_windows=bw)
+BSSweight_percent_cu_core = BSSco.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[1].data
+BSSweight_percent_ag_core = BSSco.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[0].data
+
+bw = BSSsh.estimate_background_windows(line_width=[5.0, 2.0])
+intensities = BSSsh.get_lines_intensity(background_windows=bw)
+BSSweight_percent_cu_shell = BSSsh.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[1].data
+BSSweight_percent_ag_shell = BSSsh.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[0].data
+
+# print(
+#       'NMF:'/n
+#       'Cu in core: '+str(NMFweight_percent_cu_core)'%'/n
+#       )
