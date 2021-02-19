@@ -50,7 +50,7 @@ hs.plot.plot_images(im, tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
 kfactors = [2.32, 1.58] # [Ag_La,Cu_Ka] tagna från Boken TransmissionElectronMicroscopy (finns på LUB). Cu är för Ka, Ag La+Lb
 
 
-decomp_dim = 20 #Prova runt med olika antal faktorer, det ger ganska intressanta resultat.
+decomp_dim = 3 #Prova runt med olika antal faktorer, det ger ganska intressanta resultat.
 
 #Var också tvungen att byta datatyp, kör sedan både först NMF och sedan BSS med fastICA
 #p.change_dtype('float64')

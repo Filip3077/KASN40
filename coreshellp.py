@@ -26,10 +26,12 @@ class CoreShellP:
             z=EdxMat(size,r2,dens1,l)
             self.shell=x.mat-z.mat;
             self.core=y.mat;
+
         else:
             z=EdxMat(size,r1,dens2,l)
             self.shell=y.mat-z.mat;
             self.core=x.mat;
+
 
 class CoreShellSpec:
      def __init__(self,a,spec1,spec2):
