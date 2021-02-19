@@ -26,12 +26,10 @@ class CoreShellP:
             z=EdxMat(size,r2,dens1,l)
             self.shell=x.mat-z.mat;
             self.core=y.mat;
-
         else:
             z=EdxMat(size,r1,dens2,l)
             self.shell=y.mat-z.mat;
             self.core=x.mat;
-
 
 class CoreShellSpec:
      def __init__(self,a,spec1,spec2):
@@ -52,4 +50,3 @@ class CoreShellSpec:
                  shell[i,j,0:L]=a.shell[i,j]*spec2.data
          self.core=core;
          self.shell=shell;
-         self.base=a;#Ursprungliga CoreShellP-objektet det nya objekter är baserat på.

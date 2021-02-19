@@ -47,7 +47,7 @@ p.axes_manager['y'].units = 'nm'
 p.axes_manager[-1].name = 'E'
 p.add_elements(['Ag','Cu']) 
 p.add_lines(['Ag_La','Cu_Ka'])  
-p.get_calibration_from(sAg)
+p.get_calibration_from(sCal)
 
 
 #Baserat på de spektrumen genererade av DSTA-II beräknas IAg/ICu för alla spektrum 
@@ -55,14 +55,17 @@ I = []
 for i in p:
     corebw = i.estimate_background_windows(line_width=[5.0, 7.0]) 
     intensities = i.get_lines_intensity(background_windows=corebw)
+    print(intensities[0].data[0])
+    print(intensities[1].data[0])
+    print("\n")
     I.append(intensities[0].data[0]/intensities[1].data[0])
     
     
 #Gör en passning för k-faktor till dessa intensiteter
-I = I[1:10]
+I = I[1:len(s[0])-1]
 I = np.asarray(I)
 I = I.reshape((-1,1))
-comp = np.linspace(0.1,0.9,9)
+comp = np.linspace(0.2,0.8,4)
 c = comp/(1-comp)
 
 model = LinearRegression()
@@ -83,7 +86,7 @@ sqerr=np.zeros(9);
 q = []
 
 #En linjärkombination motsvarande de simulerade spektrumen från DSTA
-for i in range(1,10):
+for i in range(1,5):
     spec2=(1-.1*i)*s[0][0]+.1*i*s[0][-1];
     abserr[i-1]=spe.SpecErrAbs(s[0][i],spec2);
     sqerr[i-1]=spe.SpecErrSq(s[0][i],spec2);
@@ -159,7 +162,7 @@ plt.title('Diff between true and calculated')
 plt.plot(comp,diff,'bo',comp,diff2,'ro')
 plt.xlabel('At% Ag')
 
-comp = np.linspace(0,1,11)
+comp = np.linspace(0,1,6)
 factors1 = [x/100 for x in factors1]
 factors2 = [x/100 for x in factors2]
 
