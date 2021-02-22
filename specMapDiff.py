@@ -18,15 +18,17 @@ def rel(EF_map,ref):
     size  = len(EF_map.inav[0])
     for x in range(size):
         for y in range(size):
-            try:
-                EF_map.inav[x,y] = EF_map.inav[x,y].data/ref.inav[x,y].data
-            except RuntimeWarning:
-                print("Försökte dela med 0")
+            if (ref.inav[x,y].data == 0):
                 EF_map.inav[x,y] = 0
-                continue
+            else:
+                EF_map.inav[x,y] = EF_map.inav[x,y].data/ref.inav[x,y].data
+                
+            
+            
     return EF_map
 
 def setCalibration(ucMap,refMap):
+    ucMap.set_signal_type("EDS_TEM")
     ucMap.axes_manager[0].name = 'y'
     ucMap.axes_manager[1].name = 'x'
     ucMap.axes_manager['x'].units = 'nm'
