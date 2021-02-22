@@ -9,7 +9,7 @@ import hyperspy.api as hs
 from coreshellp import CoreShellP
 from addSpectrum import addSpectrum
 import numpy as np
-from specMapDiff import specMapDiff,cLoadsFacs
+from specMapDiff import specMapDiff,cLoadsFacs,setCalibration,rel
 
 s = hs.load("./Spectra/MC simulation of  a 0.020 µm base, 0.020 µm high block*.msa",stack=True,signal_type="EDS_TEM")
 
@@ -107,9 +107,7 @@ for f in NMF_facs:
     
     
 NMF = cLoadsFacs(NMF_loads,NMF_facs)
-NMF.set_signal_type("EDS_TEM")
-NMF.get_calibration_from(cs)
-
+NMF = setCalibration(NMF,sAg)
 sCu /= sCu.data.max()
 csCore = addSpectrum(cs_mat.core,sCu,0.5e-6)
 
@@ -117,14 +115,10 @@ csCore = csCore.rebin(scale = [3,3,1])
 csShell = csShell.rebin(scale = [3,3,1])
 sCarbon = sCarbon.rebin(scale = [3,3,1])
 
-test = specMapDiff(sCarbon,sCarbon)
 NMF_bg = specMapDiff(NMF.inav[0],sCarbon)
 NMF_1 = specMapDiff(NMF.inav[1],csCore)
 NMF_2 =specMapDiff(NMF.inav[2],csShell)
 
-hs.plot.plot_images(im, tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
-    colorbar='single', vmin='1th', vmax='99th', scalebar='all',
-    scalebar_color='black', suptitle_fontsize=16,
-    padding={'top':0.8, 'bottom':0.10, 'left':0.05,
-             'right':0.85, 'wspace':0.20, 'hspace':0.10})
+NMF_bg = rel(NMF_bg,sCarbon)
 
+    

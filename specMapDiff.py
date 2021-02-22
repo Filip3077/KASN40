@@ -13,12 +13,29 @@ def specMapDiff(map1,map2):
     return diff
     
 
-def rel(map1,map2):
-    size  = len(map1)
+def rel(EF_map,ref):
+    #100:100:1 
+    size  = len(EF_map.inav[0])
     for x in range(size):
         for y in range(size):
-            map1.inav[x,y] = map1.inav[x,y]/map2.inav[x,y]
-    return map1
+            try:
+                EF_map.inav[x,y] = EF_map.inav[x,y].data/ref.inav[x,y].data
+            except RuntimeWarning:
+                print("Försökte dela med 0")
+                EF_map.inav[x,y] = 0
+                continue
+    return EF_map
+
+def setCalibration(ucMap,refMap):
+    ucMap.axes_manager[0].name = 'y'
+    ucMap.axes_manager[1].name = 'x'
+    ucMap.axes_manager['x'].units = 'nm'
+    ucMap.axes_manager['y'].units = 'nm'
+    ucMap.axes_manager[-1].name = 'E'
+    ucMap.get_calibration_from(refMap)
+    ucMap.add_elements(['Ag','Cu'])
+    ucMap.add_lines(['Ag_La','Cu_Ka'])
+    return ucMap
 
 def cLoadsFacs(loads,facs):
     #Antar att både loads och facs kommer från samma "ursprung" och har samma ordning och dimentioner
