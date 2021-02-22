@@ -101,14 +101,23 @@ for spectrum in NMF_facs:
     intensities = spectrum.get_lines_intensity(background_windows=bg)
     print(spectrum.quantification(intensities, method='CL', factors=kfacs,composition_units='weight')[1].data[0])
 
+
+for f in NMF_facs:
+    f /= f.data.max()
+    
+    
 NMF = cLoadsFacs(NMF_loads,NMF_facs)
 NMF.set_signal_type("EDS_TEM")
 NMF.get_calibration_from(cs)
 
+sCu /= sCu.data.max()
+csCore = addSpectrum(cs_mat.core,sCu,0.5e-6)
 
 csCore = csCore.rebin(scale = [3,3,1])
 csShell = csShell.rebin(scale = [3,3,1])
 sCarbon = sCarbon.rebin(scale = [3,3,1])
+
+test = specMapDiff(sCarbon,sCarbon)
 NMF_bg = specMapDiff(NMF.inav[0],sCarbon)
 NMF_1 = specMapDiff(NMF.inav[1],csCore)
 NMF_2 =specMapDiff(NMF.inav[2],csShell)

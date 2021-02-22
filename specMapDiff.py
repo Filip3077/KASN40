@@ -11,7 +11,14 @@ def specMapDiff(map1,map2):
     #Om map1 och map2 är hyperspy objekt går det helt enkelt att ta differensen direkt samt att ta absolutvärdet av denna. Om dimentionerna stämmer dvs. 
     diff = abs(map1-map2)
     return diff
+    
 
+def rel(map1,map2):
+    size  = len(map1)
+    for x in range(size):
+        for y in range(size):
+            map1.inav[x,y] = map1.inav[x,y]/map2.inav[x,y]
+    return map1
 
 def cLoadsFacs(loads,facs):
     #Antar att både loads och facs kommer från samma "ursprung" och har samma ordning och dimentioner
@@ -24,7 +31,7 @@ def cLoadsFacs(loads,facs):
     
     for i in range(dim):
         #För att få ett korrekta dimentioner på  hyperspy objektet behöver loads transponeras från [| x y]  till [x y |] har att göra med hur energiaxeln behandlas 
-        combinedMat[i] = (loads.inav[i].T+facs.inav[i]).data
+        combinedMat[i] = (loads.inav[i].T*facs.inav[i]).data
     
     
     combined = hs.signals.BaseSignal(combinedMat)
