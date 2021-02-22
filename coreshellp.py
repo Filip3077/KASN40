@@ -53,7 +53,7 @@ class CoreShellSpec:
          self.core=core;
          self.shell=shell;
          self.base=a;#Ursprungliga CoreShellP-objektet det nya objekter är baserat på.
-    
+         self.matr = core + shell
      def getmatr(self):
          '''Returns the matrix representing the entire core-shell particle'''
          return self.core+self.shell #Metod som returnerar den sökta matrisen
