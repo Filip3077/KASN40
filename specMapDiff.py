@@ -8,13 +8,16 @@ import hyperspy.api as hs
 import numpy as np
 
 def specMapDiff(map1,map2):
+    '''Generates a "difference map" from hyperspy signal objects map1 and map2'''
     #Om map1 och map2 är hyperspy objekt går det helt enkelt att ta differensen direkt samt att ta absolutvärdet av denna. Om dimentionerna stämmer dvs. 
     diff = abs(map1-map2)
     return diff
     
 
 def rel(EF_map,ref):
-    #100:100:1 
+    '''EF_map is assumed to be a difference map of intensities as a hyperspy image\n
+    i.e. simulation-ref or similar. ref is the reference image as a hyperspy image'''
+    #100:100:1
     size  = len(EF_map.inav[0])
     for x in range(size):
         for y in range(size):
@@ -28,6 +31,7 @@ def rel(EF_map,ref):
     return EF_map
 
 def setCalibration(ucMap,refMap):
+    '''Executes a a standard set of hyperspy signal commands for our project'''
     ucMap.set_signal_type("EDS_TEM")
     ucMap.axes_manager[0].name = 'y'
     ucMap.axes_manager[1].name = 'x'
