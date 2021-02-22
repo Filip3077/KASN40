@@ -7,39 +7,11 @@ Created on Mon Feb 22 13:21:16 2021
 import matplotlib.pyplot as plt
 import hyperspy.api as hs
 from coreshellp import CoreShellP, CoreShellSpec
-from specerr import SpecErrAbs, SpecErrSq, SpecErrAbs2D
+from specerr import *
+from specMapDiff import *
 import numpy as np
 
-def specMapDiff(map1,map2):
-    #Om map1 och map2 är hyperspy objekt går det helt enkelt att ta differensen direkt samt att ta absolutvärdet av denna. Om dimentionerna stämmer dvs. 
-    diff = abs(map1-map2)
-    
-    return diff
 
-def rel(map1,map2):
-    size  = len(map1.inav[0])
-    for x in range(size):
-        for y in range(size):
-            map1.inav[x,y] = map1.inav[x,y].data/map2.inav[x,y].data
-    return map1
-
-def cLoadsFacs(loads,facs):
-    #Antar att både loads och facs kommer från samma "ursprung" och har samma ordning och dimentioner
-    #För att få ett korrekta dimentioner på  hyperspy objektet böhöver loads transponeras från [| x y]  till [x y |] har att göra med hur energiaxeln behandlas 
-    
-    dim = len(loads)
-    size = len(loads.isig)
-    esize = len(facs.isig)
-    combinedMat = np.empty((dim,size,size,esize))
-    
-    for i in range(dim):
-        #För att få ett korrekta dimentioner på  hyperspy objektet behöver loads transponeras från [| x y]  till [x y |] har att göra med hur energiaxeln behandlas 
-        combinedMat[i] = (loads.inav[i].T*facs.inav[i]).data
-    
-    
-    combined = hs.signals.BaseSignal(combinedMat)
-    combined=combined.transpose(signal_axes=[0],navigation_axes=[3, 2, 1])
-    return combined
 
 # %% Particle generation
 
@@ -58,6 +30,7 @@ shell = hs.signals.Signal1D(a.shell)
 particle = core + shell
 
 p = hs.signals.Signal1D(particle)
+p.add_poissonian_noise()
 p.set_signal_type("EDS_TEM") 
 p.axes_manager.signal_axes[0].units = 'keV' #OBS! Enheten på energiaxeln är viktig för att kunna plotta
 p.axes_manager[0].name = 'y'
@@ -114,8 +87,8 @@ NMFparticle = NMFspec.inav[0] + NMFspec.inav[1]
 absNMF = SpecErrAbs2D(p.data,NMFparticle.data)
 #%%
 
-comp = specMapDiff(shell,NMFspec.inav[0])
-# comp.plot()
+comp = specMapDiff(p,NMFparticle)
+
 
 comp.set_signal_type("EDS_TEM") 
 comp.axes_manager.signal_axes[0].units = 'keV' #OBS! Enheten på energiaxeln är viktig för att kunna plotta
@@ -131,29 +104,12 @@ comp.get_calibration_from(cal)
 
 imComp = comp.get_lines_intensity()
 
-comp_rel = rel(imComp[0],im[0])
-comp_rel = hs.signals.Signal1D(comp_rel)
-comp_rel.set_signal_type("EDS_TEM") 
-comp_rel.axes_manager.signal_axes[0].units = 'keV' #OBS! Enheten på energiaxeln är viktig för att kunna plotta
-comp_rel.axes_manager[0].name = 'y'
-comp_rel.axes_manager[1].name = 'x'
-comp_rel.axes_manager['x'].units = 'nm'
-comp_rel.axes_manager['y'].units = 'nm'
-comp_rel.axes_manager[-1].name = 'E'
-comp_rel.add_elements(['Ag','Cu']) #Lägger in ämnen igen tydligen förs de inte med 
-comp_rel.add_lines(['Ag_La','Cu_Ka'])
+comp_relAg = rel(imComp[0],im[0])
+comp_relCu = rel(imComp[1],im[1])
 
-comp_rel.get_calibration_from(cal)
-
-im_rel = comp_rel.get_lines_intensity()
-
-hs.plot.plot_images(im_rel, tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
-    colorbar='single', vmin='1th', vmax='99th', scalebar='all',
-    scalebar_color='black', suptitle_fontsize=16,
-    padding={'top':0.8, 'bottom':0.10, 'left':0.05,
-              'right':0.85, 'wspace':0.20, 'hspace':0.10})
-# NMFspec.inav[0].plot()
-
+plt.subplot(211)
+comp_relAg.plot()
+comp_relCu.plot()
 
 
 
