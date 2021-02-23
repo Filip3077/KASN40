@@ -7,34 +7,31 @@ Created on Fri Feb 19 15:39:07 2021
 import hyperspy.api as hs
 import numpy as np
 
-def specMapDiff(map1,map2):
+def specMapDiff(map1,refMap):
     #Om map1 och map2 är hyperspy objekt går det helt enkelt att ta differensen direkt samt att ta absolutvärdet av denna. Om dimentionerna stämmer dvs. 
-    diff = abs(map1-map2)
+    diff = abs(map1-refMap)
     return diff
     
 
 def rel(EF_map,ref):
-    #100:100:1 
-    size  = len(EF_map.inav[0])
-    for x in range(size):
-        for y in range(size):
-            if (ref.inav[x,y].data == 0):
-                EF_map.inav[x,y] = 0
-            else:
-                EF_map.inav[x,y] = EF_map.inav[x,y].data/ref.inav[x,y].data
-                
-            
-            
-    return EF_map
+    '''
+    Tar den relativa 
+    '''
+    refMap = EF_map.data/ref.data
+    where_are_NaNs = np.isnan(refMap)
+    refMap[where_are_NaNs] = 0
+    refMap = hs.signals.BaseSignal(refMap).T
+    return refMap
 
-def setCalibration(ucMap,refMap):
+
+def setCalibration(ucMap,calSpec):
     ucMap.set_signal_type("EDS_TEM")
     ucMap.axes_manager[0].name = 'y'
     ucMap.axes_manager[1].name = 'x'
     ucMap.axes_manager['x'].units = 'nm'
     ucMap.axes_manager['y'].units = 'nm'
     ucMap.axes_manager[-1].name = 'E'
-    ucMap.get_calibration_from(refMap)
+    ucMap.get_calibration_from(calSpec)
     ucMap.add_elements(['Ag','Cu'])
     ucMap.add_lines(['Ag_La','Cu_Ka'])
     return ucMap

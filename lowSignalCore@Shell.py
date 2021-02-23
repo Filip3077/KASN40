@@ -15,12 +15,14 @@ s = hs.load("./Spectra/MC simulation of  a 0.020 µm base, 0.020 µm high block*
 
 sCu = s.inav[-1]
 sAg  = s.inav[0]
+sAg.add_elements(['Ag','Cu','C']) #Lägger in element igen tydligen förs de inte med 
+sAg.add_lines(['Ag_La','Cu_Ka','C_Ka'])
 sC = hs.load("./Spectra/Carbonbackground.msa",signal_type="EDS_TEM")
 '''
 
 
 '''
-size = 200
+size = 100
 cs_mat = CoreShellP(size,30.0,20.0,1,1,1)
 cs_mat.scale(1e-9)
 csShell = addSpectrum(cs_mat.shell,sAg,0.5e-6)
@@ -110,7 +112,7 @@ NMF = cLoadsFacs(NMF_loads,NMF_facs)
 NMF = setCalibration(NMF,sAg)
 sCu /= sCu.data.max()
 csCore = addSpectrum(cs_mat.core,sCu,0.5e-6)
-
+ 
 csCore = csCore.rebin(scale = [3,3,1])
 csShell = csShell.rebin(scale = [3,3,1])
 sCarbon = sCarbon.rebin(scale = [3,3,1])
@@ -119,6 +121,11 @@ NMF_bg = specMapDiff(NMF.inav[0],sCarbon)
 NMF_1 = specMapDiff(NMF.inav[1],csCore)
 NMF_2 =specMapDiff(NMF.inav[2],csShell)
 
-NMF_bg = rel(NMF_bg,sCarbon)
+csCore = setCalibration(csCore,sAg)
+imC = csCore.get_lines_intensity()
+imNMFbg = NMF_bg.get_lines_intensity()
+
+relNMF_bg = rel(imNMFbg[0],imC[0])
+
 
     
