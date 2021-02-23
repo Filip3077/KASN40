@@ -26,7 +26,7 @@ core = setCalibration(core,sAg)
 
 shell = hs.signals.Signal1D(CoreShell.shell)
 shell = setCalibration(shell,sAg)
-shell.add_poissonian_noise()
+#shell.add_poissonian_noise()
 cs = hs.signals.Signal1D(CoreShell.getmatr())
 
 cs = setCalibration(cs,sAg)
@@ -66,3 +66,27 @@ BSS = cLoadsFacs(bss_loads,bss_facs)
 NMFShellDiff = specMapDiff(NMF.inav[0],shell)
 NMFCoreDiff = specMapDiff(NMF.inav[1],core)
 NMFShellDiff.plot()
+
+NMFShellDiff = setCalibration(NMFShellDiff,sAg)
+imNMFShell = NMFShellDiff.get_lines_intensity()
+
+imShell = shell.get_lines_intensity()
+
+relNMFAg = rel(imNMFShell[0],imShell[0])
+relNMFCu = rel(imNMFShell[1],imShell[1])
+relNMF = [relNMFAg,relNMFCu]
+
+hs.plot.plot_images(relNMF,  cmap='RdYlBu_r', axes_decor='off',
+    colorbar='single', vmin='1th', vmax='99th', scalebar='all',
+    label = ['Silver Diff%','Koppar Diff%'],
+    scalebar_color='black', suptitle_fontsize=16,
+    padding={'top':0.8, 'bottom':0.10, 'left':0.05,
+             'right':0.85, 'wspace':0.20, 'hspace':0.10})
+
+
+hs.plot.plot_images(imNMFShell,  cmap='RdYlBu_r', axes_decor='off',
+    colorbar='single', vmin='1th', vmax='99th', scalebar='all',
+    label = ['Silver Diff abs','Koppar Diff abs'],
+    scalebar_color='black', suptitle_fontsize=16,
+    padding={'top':0.8, 'bottom':0.10, 'left':0.05,
+             'right':0.85, 'wspace':0.20, 'hspace':0.10})
