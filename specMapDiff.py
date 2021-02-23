@@ -10,6 +10,8 @@ import numpy as np
 def specMapDiff(map1,map2):
     '''Generates a "difference map" from hyperspy signal objects map1 and map2'''
     #Om map1 och map2 är hyperspy objekt går det helt enkelt att ta differensen direkt samt att ta absolutvärdet av denna. Om dimentionerna stämmer dvs. 
+    # If map1 and map2 are HyperSpy objects it is simply possible to calculate the difference directly and take the
+    # absolute value. That is if the dimensions match. 
     diff = abs(map1-map2)
     return diff
     
@@ -31,7 +33,7 @@ def rel(EF_map,ref):
     return EF_map
 
 def setCalibration(ucMap,refMap):
-    '''Executes a a standard set of hyperspy signal commands for our project'''
+    '''Executes a standard set of hyperspy signal meta data commands for our project'''
     ucMap.set_signal_type("EDS_TEM")
     ucMap.axes_manager[0].name = 'y'
     ucMap.axes_manager[1].name = 'x'
@@ -44,9 +46,12 @@ def setCalibration(ucMap,refMap):
     return ucMap
 
 def cLoadsFacs(loads,facs):
+    ''' Builds a picture from the loadings and factors from a statistical method such as PCA, NMF or BSS. \n
+    Assumes both loads and facs comes from the same origin and has the same order and dimensions.'''
     #Antar att både loads och facs kommer från samma "ursprung" och har samma ordning och dimentioner
     #För att få ett korrekta dimentioner på  hyperspy objektet böhöver loads transponeras från [| x y]  till [x y |] har att göra med hur energiaxeln behandlas 
-    
+    # To get the correct number of dimensions in the HyperSpy object loads needs to be transposed from [| x y] to [x y |].
+    # This has to do with how the energy axis is handeled.
     dim = len(loads)
     size = len(loads.isig)
     esize = len(facs.isig)

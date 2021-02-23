@@ -10,17 +10,17 @@ import numpy as np
 
 def SpecErrAbs (spec1, spec2):
     '''Compares two spectra as vectors and generates a fractional difference between them as \n
-    a percentage error of spec1'''#Input är alltså tänkt att vara på formen hp.load(fil).data
+    a percentage error of spec1'''
     l1=len(spec1);
     l2=len(spec2);
     s=0;
-    if (l1>=l2):#Om spektrumen har olika längd så klipper funktionen av det längre spektrumet
-        l=l2;#så att det matchar det kortare spektrumet.
+    if (l1>=l2):# If the spectra have different lengths the longest is cut to match the shorter one.  
+        l=l2;
     else:
         l=l1;
     for i in range(l):
-        s=s+abs(spec1[i]-spec2[i]);#Absolutbelopp så inte negativa och positiva fel tar ut varandra.
-    if (s==0 and sum(spec1)==0):
+        s=s+abs(spec1[i]-spec2[i]);
+    if (s==0 or sum(spec1)==0):
         return 0
     else:
         return s/sum(spec1);
@@ -38,7 +38,8 @@ def SpecErrSq (spec1, spec2):
     for i in range(l):
             s=s+((spec1[i]-spec2[i]))**2;
             z=z+((spec1[i]-np.mean(spec1)))**2            
-    return 1-s/z;#Returnerar alltså R^2 där spec2 tolkas som en modell av spec1.
+    return 1-s/z;# Returns R^2 where spec2 is seen as a model of spec1.
+
 def SpecErrAbs2D(spec1,spec2):
     '''Takes a numpy array with spectra stored in each element and generates\n
     a fractional difference between the two arrays based in the spectra. The norm \n
