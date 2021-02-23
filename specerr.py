@@ -20,7 +20,7 @@ def SpecErrAbs (spec1, spec2):
         l=l1;
     for i in range(l):
         s=s+abs(spec1[i]-spec2[i]);
-    if (s==0 or sum(spec1)==0):
+    if (sum(spec1)==0):
         return 0
     else:
         return s/sum(spec1);

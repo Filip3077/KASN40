@@ -4,6 +4,7 @@ Created on Mon Feb 22 13:21:16 2021
 
 @author: Filip Hallböök & Lucas Nobrant 
 """
+
 import matplotlib.pyplot as plt
 import hyperspy.api as hs
 from coreshellp import CoreShellP, CoreShellSpec
@@ -88,41 +89,182 @@ hs.plot.plot_images(loadings, cmap='mpl_colors',
                     padding={'top': 0.95, 'bottom': 0.05,
                              'left': 0.05, 'right':0.78})
 
-#%% 
+p.blind_source_separation(number_of_components=dim)#,algorithm="orthomax"
+bssfac = p.get_bss_factors()
+bssload = p.get_bss_loadings()
+
+hs.plot.plot_spectra(bssfac.isig[0.0:10000.0],style='cascade') 
+plt.title('NMF+BSS with fastICA')
+plt.axvline(8040, c='k', ls=':', lw=0.5)
+plt.text(x=8040, y=1.6, s='Cu-K$_\\alpha$', color='k')
+plt.axvline(2984, c='k', ls=':', lw=0.5)
+plt.text(x=2984, y=1.6, s='Ag-L$_\\alpha$', color='k')
+plt.axvline(930, c='k', ls=':', lw=0.5)
+plt.text(x=930, y=1.6, s='Cu-L$_\\alpha$', color='k')
+
+hs.plot.plot_images(bssload, cmap='mpl_colors',
+                    axes_decor='off', per_row=3,
+            scalebar=[0], scalebar_color='white',
+            padding={'top': 0.95, 'bottom': 0.05,
+                  'left': 0.05, 'right':0.78})
+
+#%% NMF errors
+particle = core + shell
 NMFspec = cLoadsFacs(loadings, factors)
 NMFparticle = NMFspec.inav[0] + NMFspec.inav[1]
 
-# errNMFtot = SpecErrAbs2D(p.data,NMFparticle.data)
+errNMFtot = SpecErrAbs2D(particle.data,NMFparticle.data)
 errNMFcore = SpecErrAbs2D(core.data,NMFspec.inav[1].data)
 errNMFshell = SpecErrAbs2D(shell.data,NMFspec.inav[0].data)
+#%% BSS errors
+BSSspec = cLoadsFacs(bssload,bssfac)
+BSSparticle = BSSspec.inav[0] + BSSspec.inav[1]
+
+errBSStot = SpecErrAbs2D(particle.data,BSSparticle.data)
+errBSScore = SpecErrAbs2D(core.data,BSSspec.inav[0].data)
+errBSSshell = SpecErrAbs2D(shell.data,BSSspec.inav[1].data)
 #%%
 
-compare = specMapDiff(p,NMFparticle)
+NMFcompareTot = specMapDiff(p,NMFparticle)
+NMFcompareTot = setCalibration(NMFcompareTot, cal)
+NMFcompareCore = specMapDiff(core, NMFspec.inav[1])
+NMFcompareCore = setCalibration(NMFcompareCore,cal)
+NMFcompareShell = specMapDiff(shell,NMFspec.inav[0])
+NMFcompareShell = setCalibration(NMFcompareShell,cal)
+
+BSScompareTot = specMapDiff(p,BSSparticle)
+BSScompareTot = setCalibration(BSScompareTot, cal)
+BSScompareCore = specMapDiff(core, BSSspec.inav[0])
+BSScompareCore = setCalibration(BSScompareCore, cal)
+BSScompareShell = specMapDiff(shell, BSSspec.inav[1])
+BSScompareShell = setCalibration(BSScompareShell, cal)
+
+#%%
+
+imNMFcompTot = NMFcompareTot.get_lines_intensity()
+imNMFcompCore = NMFcompareCore.get_lines_intensity()
+imNMFcompShell = NMFcompareShell.get_lines_intensity()
+imBSScompTot = BSScompareTot.get_lines_intensity()
+imBSScompCore = BSScompareCore.get_lines_intensity()
+imBSScompShell = BSScompareShell.get_lines_intensity()
+
+#%%
+particle = setCalibration(particle, cal)
+imComp = particle.get_lines_intensity()
+
+relNMFcompTot = [rel(imNMFcompTot[0], imComp[0]),rel(imNMFcompTot[1], imComp[1])]
+relNMFcompCore = [rel(imNMFcompCore[0], imComp[0]),rel(imNMFcompCore[1], imComp[1])]
+relNMFcompShell = [rel(imNMFcompShell[0], imComp[0]),rel(imNMFcompShell[1], imComp[1])]
+relBSScompTot = [rel(imBSScompTot[0],imComp[0]),rel(imBSScompTot[1],imComp[1])]
+relBSScompCore = [rel(imBSScompCore[0],imComp[0]),rel(imBSScompCore[1],imComp[1])]
+relBSScompShell = [rel(imBSScompShell[0],imComp[0]),rel(imBSScompShell[1],imComp[1])]
+
+#%%
+
+NMFplot = [relNMFcompTot[0], relNMFcompCore[0], relNMFcompShell[0], relNMFcompTot[1], relNMFcompCore[1], relNMFcompShell[1]]
+
+NMFtitle = 'NMF X-ray line intensities'
+BSSlabel = ['Ag rel.diff Tot','Ag rel.diff Core','Ag rel.diff Shell',
+            'Cu rel.diff Tot','Cu rel.diff Core','Cu rel.diff Shell']
+hs.plot.plot_images(NMFplot,suptitle=NMFtitle, label=BSSlabel,  cmap='RdYlBu_r', axes_decor='off',
+    colorbar='single', vmin='1th', vmax='99th', scalebar='all',
+    scalebar_color='black', suptitle_fontsize=16,
+    padding={'top':0.8, 'bottom':0.10, 'left':0.05,
+              'right':0.85, 'wspace':0.20, 'hspace':0.10})
+
+BSSplot = [relBSScompTot[0], relBSScompCore[0], relBSScompShell[0], relBSScompTot[1], relBSScompCore[1], relBSScompShell[1]]
+
+BSStitle = 'BSS X-ray line intensities'
+BSSlabel = ['Ag rel.diff Tot','Ag rel.diff Core','Ag rel.diff Shell',
+            'Cu rel.diff Tot','Cu rel.diff Core','Cu rel.diff Shell']
+hs.plot.plot_images(BSSplot,suptitle=BSStitle, label=BSSlabel,  cmap='RdYlBu_r', axes_decor='off',
+    colorbar='single', vmin='1th', vmax='99th', scalebar='all',
+    scalebar_color='black', suptitle_fontsize=16,
+    padding={'top':0.8, 'bottom':0.10, 'left':0.05,
+              'right':0.85, 'wspace':0.20, 'hspace':0.10})
+
+#%% Quantification
+
+core_spec = np.sum(a.core,(0,1))
+shell_spec = np.sum(a.shell,(0,1))
 
 
-compare.set_signal_type("EDS_TEM") 
-compare.axes_manager.signal_axes[0].units = 'keV' #OBS! Enheten på energiaxeln är viktig för att kunna plotta
-compare.axes_manager[0].name = 'y'
-compare.axes_manager[1].name = 'x'
-compare.axes_manager['x'].units = 'nm'
-compare.axes_manager['y'].units = 'nm'
-compare.axes_manager[-1].name = 'E'
-compare.add_elements(['Ag','Cu']) #Lägger in ämnen igen tydligen förs de inte med 
-compare.add_lines(['Ag_La','Cu_Ka'])
+co = hs.signals.Signal1D(core_spec)
+sh = hs.signals.Signal1D(shell_spec)
+co.set_signal_type("EDS_TEM")
+sh.set_signal_type("EDS_TEM")
+co.axes_manager.signal_axes[0].units = 'keV'
+sh.axes_manager.signal_axes[0].units = 'keV'
+co.add_elements(['Ag','Cu'])
+sh.add_elements(['Ag','Cu'])
+co.add_lines(['Ag_La','Cu_Ka'])
+sh.add_lines(['Ag_La','Cu_Ka'])
 
-compare.get_calibration_from(cal)
-
-imComp = compare.get_lines_intensity()
-
-comp_relAg = rel(imComp[0],im[0])
-comp_relCu = rel(imComp[1],im[1])
-
-plt.subplot(211)
-comp_relAg.plot()
-comp_relCu.plot()
+cal = hs.load("../Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")
+co.get_calibration_from(cal)
+sh.get_calibration_from(cal)
 
 
+kfactors = [1.0, 0.72980399]
+bw = co.estimate_background_windows(line_width=[5.0, 2.0])
+intensities = co.get_lines_intensity(background_windows=bw)
+weight_percent_cu_core = co.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[1].data
+weight_percent_ag_core = co.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[0].data
 
+bw = sh.estimate_background_windows(line_width=[5.0, 2.0])
+intensities = sh.get_lines_intensity(background_windows=bw)
+weight_percent_cu_shell = sh.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[1].data
+weight_percent_ag_shell = sh.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[0].data
+
+NMFfac = factors.data
+NMFco = hs.signals.Signal1D(NMFfac[0])
+NMFsh = hs.signals.Signal1D(NMFfac[1])
+NMFco.set_signal_type("EDS_TEM")
+NMFsh.set_signal_type("EDS_TEM")
+NMFco.axes_manager.signal_axes[0].units = 'keV'
+NMFsh.axes_manager.signal_axes[0].units = 'keV'
+NMFco.add_elements(['Ag','Cu'])
+NMFsh.add_elements(['Ag','Cu'])
+NMFco.add_lines(['Ag_La','Cu_Ka'])
+NMFsh.add_lines(['Ag_La','Cu_Ka'])
+
+NMFco.get_calibration_from(cal)
+NMFsh.get_calibration_from(cal)
+
+bw = NMFco.estimate_background_windows(line_width=[5.0, 2.0])
+intensities = NMFco.get_lines_intensity(background_windows=bw)
+NMFweight_percent_cu_core = NMFco.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[1].data
+NMFweight_percent_ag_core = NMFco.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[0].data
+
+bw = NMFsh.estimate_background_windows(line_width=[5.0, 2.0])
+intensities = NMFsh.get_lines_intensity(background_windows=bw)
+NMFweight_percent_cu_shell = NMFsh.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[1].data
+NMFweight_percent_ag_shell = NMFsh.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[0].data
+
+BSSfac = bssfac.data
+BSSco = hs.signals.Signal1D(BSSfac[0])
+BSSsh = hs.signals.Signal1D(BSSfac[1])
+BSSco.set_signal_type("EDS_TEM")
+BSSsh.set_signal_type("EDS_TEM")
+BSSco.axes_manager.signal_axes[0].units = 'keV'
+BSSsh.axes_manager.signal_axes[0].units = 'keV'
+BSSco.add_elements(['Ag','Cu'])
+BSSsh.add_elements(['Ag','Cu'])
+BSSco.add_lines(['Ag_La','Cu_Ka'])
+BSSsh.add_lines(['Ag_La','Cu_Ka'])
+
+BSSco.get_calibration_from(cal)
+BSSsh.get_calibration_from(cal)
+
+bw = BSSco.estimate_background_windows(line_width=[5.0, 2.0])
+intensities = NMFco.get_lines_intensity(background_windows=bw)
+BSSweight_percent_cu_core = BSSco.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[1].data
+BSSweight_percent_ag_core = BSSco.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[0].data
+
+bw = BSSsh.estimate_background_windows(line_width=[5.0, 2.0])
+intensities = BSSsh.get_lines_intensity(background_windows=bw)
+BSSweight_percent_cu_shell = BSSsh.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[1].data
+BSSweight_percent_ag_shell = BSSsh.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[0].data
 
 
 

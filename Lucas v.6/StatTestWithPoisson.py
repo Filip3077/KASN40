@@ -199,3 +199,66 @@ BSSweight_percent_ag_shell = BSSsh.quantification(intensities, method='CL', fact
 #       'NMF:'/n
 #       'Cu in core: '+str(NMFweight_percent_cu_core)'%'/n
 #       )
+
+
+# fig, axarr = plt.subplots(3,1)
+# s1 = relBSScompTot
+# s2 = relBSScompCore
+# s3 = relBSScompShell
+
+# hs.plot.plot_images(s1, tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
+#     colorbar='single', vmin='1th', vmax='99th', scalebar='all',
+#     scalebar_color='black', suptitle_fontsize=16,
+#     padding={'top':0.8, 'bottom':0.10, 'left':0.05,
+#               'right':0.85, 'wspace':0.20, 'hspace':0.10},
+#     fig=fig)
+# hs.plot.plot_images(s2, tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
+#     colorbar='single', vmin='1th', vmax='99th', scalebar='all',
+#     scalebar_color='black', suptitle_fontsize=16,
+#     padding={'top':0.8, 'bottom':0.10, 'left':0.05,
+#               'right':0.85, 'wspace':0.20, 'hspace':0.10},
+#     fig=fig)
+# hs.plot.plot_images(s3, tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
+#     colorbar='single', vmin='1th', vmax='99th', scalebar='all',
+#     scalebar_color='black', suptitle_fontsize=16,
+#     padding={'top':0.8, 'bottom':0.10, 'left':0.05,
+#               'right':0.85, 'wspace':0.20, 'hspace':0.10},
+#     fig=fig)
+# fig.canvas.draw()
+
+# fig, axarr = plt.subplots(1,2)
+
+# s1 = hs.signals.Signal1D(scipy.misc.ascent()[100:160:10])
+
+# s2 = hs.signals.Signal1D(scipy.misc.ascent()[200:260:10])
+
+# hs.plot.plot_spectra(s1,
+
+#                         style='cascade',
+
+#                         color=[plt.cm.RdBu(i/float(len(s1)-1))
+
+#                                for i in range(len(s1))],
+
+#                         ax=axarr[0],
+
+#                         fig=fig)
+
+# hs.plot.plot_spectra(s2,
+
+#                         style='cascade',
+
+#                         color=[plt.cm.summer(i/float(len(s1)-1))
+
+#                                for i in range(len(s1))],
+
+#                         ax=axarr[1],
+
+#                         fig=fig)
+
+# axarr[0].set_xlabel('RdBu (colormap)')
+
+# axarr[1].set_xlabel('summer (colormap)')
+
+# fig.canvas.draw()
+
