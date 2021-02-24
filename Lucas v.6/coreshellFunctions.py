@@ -17,7 +17,7 @@ def genfullparticle(size,r1,r2,specCore,specShell,signal=True,dens1=1,dens2=1,l=
     a = CoreShellP(size,r1,r2,dens1,dens2,l) 
     return CoreShellSpec(a,specCore,specShell,signal)
 
-class
+
 def postNMFBSSprocess(core,shell,NMFfac=[],NMFload=[],BSSfac=[],BSSload=[]):
     '''  '''
     if len(NMFfac) == 0:
