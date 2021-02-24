@@ -83,7 +83,6 @@ class CoreShellSpec:
              self.shell=shell;
              self.full=full
          self.base=a;
-         self.matr = core + shell
      def getmatr(self):
          '''Returns the matrix representing the entire core-shell particle'''
          return self.core+self.shell 
