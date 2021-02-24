@@ -6,6 +6,7 @@ Created on Fri Feb 19 15:39:07 2021
 """
 import hyperspy.api as hs
 import numpy as np
+from specerr import *
 
 def specMapDiff(map1,refMap):
     #Om map1 och map2 är hyperspy objekt går det helt enkelt att ta differensen direkt samt att ta absolutvärdet av denna. Om dimentionerna stämmer dvs. 
@@ -54,4 +55,9 @@ def cLoadsFacs(loads,facs):
     combined=combined.transpose(signal_axes=[0],navigation_axes=[3, 2, 1])
     return combined
 
+class mapError(hs.signals.Signal1D):
+    def __init__(self, map1, refMap):
+        errorMap = specMapDiff(map1,refMap)
+        super().__init__(errorMap)
+        
         

@@ -122,28 +122,44 @@ DTSA_LC_diff = []
 LC_LC_diff = []
 
 for i in range(6):
-    DTSA_DTSA_diff.append(abs(DTSA_DTSA_xAg[i] - xAg[i]))
-    LC_DTSA_diff.append(abs(LC_DTSA_xAg[i] - xAg[i]))
-    DTSA_LC_diff.append(abs(DTSA_LC_xAg[i] - xAg[i]))
-    LC_LC_diff.append(abs(LC_LC_xAg[i] - xAg[i] ))
+    DTSA_DTSA_diff.append(abs(DTSA_DTSA_xAg[i] - xAg[i])*100)
+    LC_DTSA_diff.append(abs(LC_DTSA_xAg[i] - xAg[i])*100)
+    DTSA_LC_diff.append(abs(DTSA_LC_xAg[i] - xAg[i])*100)
+    LC_LC_diff.append(abs(LC_LC_xAg[i] - xAg[i] )*100)
 
 plt.figure()
+
 plt.subplot(211)
 plt.title('DTSA spectrum')
 plt.plot(xAg,DTSA_DTSA_xAg,'r',xAg,xAg,'k',xAg,LC_DTSA_xAg,'b')
 plt.legend(['DTSA-k','True','Linear Combination-k'])
+plt.ylabel('wt% Ag calculated')
+plt.grid()
+plt.show()
 
 plt.subplot(212)
 plt.plot(xAg,DTSA_DTSA_diff,'ro',xAg,LC_DTSA_diff,'bo')
+plt.xlabel('wt% Ag')
+plt.ylabel('Error (%)')
+plt.grid()
+plt.show()
 
 plt.figure()
+
 plt.subplot(211)
 plt.title('Linear combinations')
 plt.plot(xAg,DTSA_LC_xAg,'r',xAg,xAg,'k',xAg,LC_LC_xAg,'b')
 plt.legend(['DTSA-k','True','Linear Combination-k'])
+plt.ylabel('wt% Ag calculated')
+plt.grid()
+plt.show()
 
 plt.subplot(212)
 plt.plot(xAg,DTSA_LC_diff,'ro',xAg,LC_LC_diff,'bo')
+plt.xlabel('wt% Ag')
+plt.ylabel('Error (%)')
+plt.grid()
+plt.show()
 
 plt.figure()
 plt.plot(xAg[1:-1]/(1-xAg[1:-1]),I[1:-1],'r',xAg[1:-1]/(1-xAg[1:-1]),ILC[1:-1],'b')

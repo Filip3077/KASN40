@@ -9,6 +9,7 @@ import hyperspy.api as hs
 from coreshellp import CoreShellP,CoreShellSpec
 import numpy as np
 from specMapDiff import specMapDiff,cLoadsFacs,setCalibration,rel
+from specerr import *
 
 s = hs.load("./Spectra/MC simulation of  a 0.020 µm base, 0.020 µm high block*.msa",stack=True,signal_type="EDS_TEM")
 sAg = s.inav[0]
