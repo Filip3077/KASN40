@@ -41,11 +41,15 @@ def SpecErrSq (spec1, spec2):
     return 1-s/z;# Returns R^2 where spec2 is seen as a model of spec1.
 
 def SpecErrAbs2D(map1,relMap):
-    '''Takes a numpy array with spectra stored in each element and generates\n
+    '''Takes two hyperspy signals map1 and relmap and generates\n
     a fractional difference between the two arrays based in the spectra. The norm \n
-    is spec1.'''
+    is relmap1.'''
     reldif = abs(map1-relMap).data.sum()/relMap.data.sum()
     return reldif
+def SpecErrSq2D (map1, relMap):
+    '''Takes two hyperspy signals map1 and relmap and, interpreting \n
+    map1 as a model of relMap, calculates the coefficient of determination'''
+    z=((relmap-mean)**2);
     
     # l1=spec1.shape;
     # l2=spec2.shape;
