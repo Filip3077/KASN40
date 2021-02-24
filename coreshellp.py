@@ -60,7 +60,7 @@ class CoreShellP:
 
 
 class CoreShellSpec:
-     def __init__(self,a,spec1,spec2):
+     def __init__(self,a,spec1,spec2,signal=True):
          '''Takes a CoreShellP object a and inserts the core spectrum \n
          spec1 and the shell spectrum spec2 at the appropriate places.\n
          Both spectra must be HyperSpy 1D signals.'''
@@ -73,8 +73,15 @@ class CoreShellSpec:
              for j in range(0,a.size):
                  core[i,j,0:L]=a.core[i,j]*spec1.data
                  shell[i,j,0:L]=a.shell[i,j]*spec2.data
-         self.core=core;
-         self.shell=shell;
+         full = core + shell
+         if signal:
+             self.core = hs.signals.Signal1D(core)
+             self.shell = hs.signals.Signal1D(shell)
+             self.full = hs.signals.Signal1D(full)
+         else:
+             self.core=core;
+             self.shell=shell;
+             self.full=full
          self.base=a;
          self.matr = core + shell
      def getmatr(self):

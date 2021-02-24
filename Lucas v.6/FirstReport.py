@@ -15,16 +15,16 @@ import numpy as np
 
 
 # %% Particle generation
-
-# Here the two spectrums are made from simulations of pure elements and then linearly combined to the desiered 
-# core and shell compositions. 
+'''  '''
+# Here the two spectrums, made from DTSA-II simulations of pure elements, are loaded and linearly combined 
+# to the desiered core and shell compositions. 
 sAgPure = hs.load("../Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("../Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
 
-sAg = 0.9*sAgPure.data + 0.1*sCuPure.data
-sCu = 0.9*sCuPure.data + 0.1*sAgPure.data
+sAg = 0.9*sAgPure.data + 0.1*sCuPure.data # Shell composition: 90%Ag-10%Cu
+sCu = 0.9*sCuPure.data + 0.1*sAgPure.data # Core composition: 10%Ag-90%Cu
 
-# CoreShellP generates two 3D matrixes of a sphere. One consisting of the core and one as the shell. 
+# CoreShellP generates two 3D matrices of a sphere. One consisting of the core and one as the shell. 
 dens = 1 # The density here can be seen as having the unit nm^-3 to make the values in the sphere matrix unitless.
 x = CoreShellP(50,20.0,15.0,dens,dens,1) # 50x50 pixels, 20nm outer radius, 15nm core radius, densities, 1x1 nm pixel size.
 
@@ -50,7 +50,7 @@ p.add_elements(['Ag','Cu'])
 p.add_lines(['Ag_La','Cu_Ka'])
 
 cal = hs.load("../Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")
-p.get_calibration_from(cal) # Calibration from a similar spectrum lets HyperSpy place the element lines correctly.
+p.get_calibration_from(cal) # Calibration from a similar spectrum so HyperSpy place the element lines correctly.
 
 im = p.get_lines_intensity() # 
 
@@ -66,11 +66,11 @@ hs.plot.plot_images(im, tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
 
 
 dim = 2 # Since we only have the two elements in the particle only two components is needed for NMF and BSS.
-p.decomposition(True,algorithm='NMF',output_dimension =dim)
+p.decomposition(True,algorithm='NMF',output_dimension =dim) # The "True" variable tells the function to normalize poissonian noise.
 factors = p.get_decomposition_factors() 
 loadings =p.get_decomposition_loadings()
 
-
+# Plotting NMF
 hs.plot.plot_spectra(factors.isig[0.0:10000.0],style='cascade')
 plt.title('NMF')
 plt.text(x=8040, y=0.8, s='Cu-K$_\\alpha$', color='k')
@@ -86,10 +86,11 @@ hs.plot.plot_images(loadings, cmap='mpl_colors',
                     padding={'top': 0.95, 'bottom': 0.05,
                              'left': 0.05, 'right':0.78})
 
-p.blind_source_separation(number_of_components=dim)#,algorithm="orthomax"
+p.blind_source_separation(number_of_components=dim) # BSS Based on the already performed NMF.
 bssfac = p.get_bss_factors()
 bssload = p.get_bss_loadings()
 
+# Plotting BSS
 hs.plot.plot_spectra(bssfac.isig[0.0:10000.0],style='cascade') 
 plt.title('NMF+BSS with fastICA')
 plt.axvline(8040, c='k', ls=':', lw=0.5)
@@ -105,23 +106,24 @@ hs.plot.plot_images(bssload, cmap='mpl_colors',
             padding={'top': 0.95, 'bottom': 0.05,
                   'left': 0.05, 'right':0.78})
 
-#%% NMF errors
-particle = core + shell
+#%% Total Sums of Errors
+''' Here the total sum of errors is calculated for the different image comparisons. '''
+
 NMFspec = cLoadsFacs(loadings, factors)
 NMFparticle = NMFspec.inav[0] + NMFspec.inav[1]
 
-errNMFtot = SpecErrAbs2D(particle.data,NMFparticle.data)
-errNMFcore = SpecErrAbs2D(core.data,NMFspec.inav[0].data)
-errNMFshell = SpecErrAbs2D(shell.data,NMFspec.inav[1].data)
-#%% BSS errors
+errNMFtot = SpecErrAbs2D(NMFparticle,particle)
+errNMFcore = SpecErrAbs2D(NMFspec.inav[0],core)
+errNMFshell = SpecErrAbs2D(NMFspec.inav[1],shell)
+
 BSSspec = cLoadsFacs(bssload,bssfac)
 BSSparticle = BSSspec.inav[0] + BSSspec.inav[1]
 
-errBSStot = SpecErrAbs2D(particle.data,BSSparticle.data)
-errBSScore = SpecErrAbs2D(core.data,BSSspec.inav[1].data)
-errBSSshell = SpecErrAbs2D(shell.data,BSSspec.inav[0].data)
-#%%
-
+errBSStot = SpecErrAbs2D(BSSparticle,particle)
+errBSScore = SpecErrAbs2D(BSSspec.inav[0],core)
+errBSSshell = SpecErrAbs2D(BSSspec.inav[1],shell)
+#%% Error Maps 
+''' Here error maps are calculated by subtractng the original images from the ones made from factors and loadings. '''
 NMFcompareTot = specMapDiff(p,NMFparticle)
 NMFcompareTot = setCalibration(NMFcompareTot, cal)
 NMFcompareCore = specMapDiff(core, NMFspec.inav[0])
@@ -131,13 +133,13 @@ NMFcompareShell = setCalibration(NMFcompareShell,cal)
 
 BSScompareTot = specMapDiff(p,BSSparticle)
 BSScompareTot = setCalibration(BSScompareTot, cal)
-BSScompareCore = specMapDiff(core, BSSspec.inav[1])
+BSScompareCore = specMapDiff(core, BSSspec.inav[0])
 BSScompareCore = setCalibration(BSScompareCore, cal)
-BSScompareShell = specMapDiff(shell, BSSspec.inav[0])
+BSScompareShell = specMapDiff(shell, BSSspec.inav[1])
 BSScompareShell = setCalibration(BSScompareShell, cal)
 
-#%%
-
+#%% 
+''' This just divides the maps into signals of Ag and Cu by themselfes. '''
 imNMFcompTot = NMFcompareTot.get_lines_intensity()
 imNMFcompCore = NMFcompareCore.get_lines_intensity()
 imNMFcompShell = NMFcompareShell.get_lines_intensity()
@@ -145,7 +147,8 @@ imBSScompTot = BSScompareTot.get_lines_intensity()
 imBSScompCore = BSScompareCore.get_lines_intensity()
 imBSScompShell = BSScompareShell.get_lines_intensity()
 
-#%%
+#%% Relative error maps
+'''  '''
 particle = setCalibration(particle, cal)
 imComp = particle.get_lines_intensity()
 
@@ -156,7 +159,7 @@ relBSScompTot = [rel(imBSScompTot[0],imComp[0]),rel(imBSScompTot[1],imComp[1])]
 relBSScompCore = [rel(imBSScompCore[0],imComp[0]),rel(imBSScompCore[1],imComp[1])]
 relBSScompShell = [rel(imBSScompShell[0],imComp[0]),rel(imBSScompShell[1],imComp[1])]
 
-#%%
+#%% Plotting absolute maps
 
 NMFplot = [imNMFcompTot[0], imNMFcompCore[0], imNMFcompShell[0], imNMFcompTot[1], imNMFcompCore[1], imNMFcompShell[1]]
 
@@ -180,7 +183,7 @@ hs.plot.plot_images(BSSplot,suptitle=BSStitle, label=BSSlabel,  cmap='RdYlBu_r',
     padding={'top':0.8, 'bottom':0.10, 'left':0.05,
               'right':0.85, 'wspace':0.20, 'hspace':0.10})
 
-#%%
+#%% Plotting relative maps
 
 NMFplot = [relNMFcompTot[0], relNMFcompCore[0], relNMFcompShell[0], relNMFcompTot[1], relNMFcompCore[1], relNMFcompShell[1]]
 
@@ -205,7 +208,7 @@ hs.plot.plot_images(BSSplot,suptitle=BSStitle, label=BSSlabel,  cmap='RdYlBu_r',
               'right':0.85, 'wspace':0.20, 'hspace':0.10})
 
 #%% Quantification
-
+'''  '''
 core_spec = np.sum(a.core,(0,1))
 shell_spec = np.sum(a.shell,(0,1))
 
@@ -262,8 +265,8 @@ NMFweight_percent_cu_shell = NMFsh.quantification(intensities, method='CL', fact
 NMFweight_percent_ag_shell = NMFsh.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[0].data
 
 BSSfac = bssfac.data
-BSSco = hs.signals.Signal1D(BSSfac[1])
-BSSsh = hs.signals.Signal1D(BSSfac[0])
+BSSco = hs.signals.Signal1D(BSSfac[0])
+BSSsh = hs.signals.Signal1D(BSSfac[1])
 BSSco.set_signal_type("EDS_TEM")
 BSSsh.set_signal_type("EDS_TEM")
 BSSco.axes_manager.signal_axes[0].units = 'keV'
