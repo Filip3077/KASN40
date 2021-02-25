@@ -26,7 +26,7 @@ class EdxMat:
         for i in range(size):
             for j in range(size):
                 if rred**2>=((i-self.mid)**2+(j-self.mid)**2):
-                    mat[i][j]=2*dens*self.thick(i,j);
+                    mat[i][j]=2*dens*thick(i,j);
         
     def thick(self,n,m):
         nr=n-self.mid;

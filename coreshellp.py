@@ -27,9 +27,9 @@ class EdxMat:
         for i in range(size):
             for j in range(size):
                 if rred**2>=((i-self.mid)**2+(j-self.mid)**2):
-                    mat[i][j]=2*dens*self.thick(i,j);
+                    mat[i][j]=2*dens*self.__thick(i,j);
         
-    def thick(self,n,m):
+    def __thick(self,n,m):
         nr=n-self.mid;
         mr=m-self.mid;
         l=self.l;
@@ -73,16 +73,15 @@ class CoreShellSpec:
              for j in range(0,a.size):
                  core[i,j,0:L]=a.core[i,j]*spec1.data
                  shell[i,j,0:L]=a.shell[i,j]*spec2.data
-         full = core + shell
          if signal:
              self.core = hs.signals.Signal1D(core)
              self.shell = hs.signals.Signal1D(shell)
-             self.full = hs.signals.Signal1D(full)
          else:
              self.core=core;
              self.shell=shell;
-             self.full=full
+            
          self.base=a;
      def getmatr(self):
          '''Returns the matrix representing the entire core-shell particle'''
          return self.core+self.shell 
+     

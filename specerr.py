@@ -46,12 +46,8 @@ def SpecErrAbs2D(map1,relMap):
     is relmap1.'''
     reldif = abs(map1-relMap).data.sum()/relMap.data.sum()
     return reldif
-def SpecErrSq2D (map1, relMap):
-    '''Takes two hyperspy signals map1 and relmap and, interpreting \n
-    map1 as a model of relMap, calculates the coefficient of determination'''
-    z=((relmap-mean)**2);
-    
-    # l1=spec1.shape;
+
+# l1=spec1.shape;
     # l2=spec2.shape;
     # k0=min(l1[0],l2[0]);
     # k1=min(l1[1],l2[1]);
@@ -60,3 +56,12 @@ def SpecErrSq2D (map1, relMap):
     #     for j in range(k1):
     #         store[i][j]=SpecErrAbs(spec1[i][j],spec2[i][j])*np.sum(spec1[i][j])
     # return np.sum(store)/np.sum(spec1)
+def SpecErrSq2D (map1, relMap):
+    '''Takes two hyperspy signals map1 and relmap and, interpreting \n
+    map1 as a model of relMap, calculates the coefficient of determination. Both\n
+    signals must have a signal dimension of 1'''
+    z=(relMap.data-map1.data.mean())**2;
+    s=(relMap.data-map1.data.mean())**2;
+    return 1-s/z; #Returns R^2 for map1 as model of relMap.
+    
+    

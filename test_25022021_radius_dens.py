@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Feb 22 13:21:16 2021
+Created on Thu Feb 25 13:25:04 2021
 
-@author: Filip Hallböök & Lucas Nobrant 
+@author: Jonas
 """
 
 import matplotlib.pyplot as plt
@@ -18,47 +18,43 @@ import numpy as np
 '''  '''
 # Here the two spectrums, made from DTSA-II simulations of pure elements, are loaded and linearly combined 
 # to the desiered core and shell compositions. 
-sAgPure = hs.load("../Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
-sCuPure = hs.load("../Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
+sAgPure = hs.load("./Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
+sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
 
 sAg = 0.9*sAgPure.data + 0.1*sCuPure.data # Shell composition: 90%Ag-10%Cu
 sCu = 0.9*sCuPure.data + 0.1*sAgPure.data # Core composition: 10%Ag-90%Cu
+ratios=np.linspace(0,1,11);
+cores=np.zeros((1,11,2048));
+shells=np.zeros((1,11,2048))
 
+for i in range(len(ratios)):#For some reason range(ratios) does not work
+    cores[0][i]=(1-ratios[i])*sCuPure.data+ratios[i]*sAgPure.data
+    shells[0][i]=(1-ratios[i])*sAgPure.data+ratios[i]*sCuPure.data
+x=[];
+a=[];
+dens = 20**-1
+for i in range(len(ratios)):
+    x.append(CoreShellP(50,20.0,15.0,dens,dens,1))
+    a.append(CoreShellSpec(x[i],cores[0][i],shells[0][i],True))
 # CoreShellP generates two 3D matrices of a sphere. One consisting of the core and one as the shell. 
-dens = 20**-3 # The density here can be seen as having the unit nm^-3 to make the values in the sphere matrix unitless.
-x = CoreShellP(50,20.0,15.0,dens,dens,1) # 50x50 pixels, 20nm outer radius, 15nm core radius, densities, 1x1 nm pixel size.
+ # The density here can be seen as having the unit nm^-3 to make the values in the sphere matrix unitless.
+# 50x50 pixels, 20nm outer radius, 15nm core radius, densities, 1x1 nm pixel size.
 
 # CoreShellSpec fills the core and shell matrices from above with the simulated spectra and are then turned into 
 # HyperSpy objects for the latter comparrisons. Combining these gives us a HyperSpy object of a whole particle (p). 
-a = CoreShellSpec(x,sCu,sAg)
-core = hs.signals.Signal1D(a.core)
-shell = hs.signals.Signal1D(a.shell)
+core = a[1].core#list(map(lambda a: a.getmatr(),all))
+shell = a[1].shell#list(map(lambda a: a.getmatr(),all))
 particle = core + shell
 
 p = hs.signals.Signal1D(particle)
 p.add_poissonian_noise() # Adds poissonian noise to the existing spectra.
+cal = hs.load("./Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")#Kalibreringsdata
+# For nicer plots, HyperSpy needs some meta data:
+p=setCalibrationCuAg(p, cal)
+#Make image
+im=p.get_lines_intensity()
+redBlueMap(im)
 
-# For nicer plots, HyperSpy needs some meta data: 
-p.set_signal_type("EDS_TEM") 
-p.axes_manager.signal_axes[0].units = 'keV' # Note, the unit of the energy axis is important to be able to plot.
-p.axes_manager[0].name = 'y'
-p.axes_manager[1].name = 'x'
-p.axes_manager['x'].units = 'nm'
-p.axes_manager['y'].units = 'nm'
-p.axes_manager[-1].name = 'E'
-p.add_elements(['Ag','Cu']) 
-p.add_lines(['Ag_La','Cu_Ka'])
-
-cal = hs.load("../Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")
-p.get_calibration_from(cal) # Calibration from a similar spectrum so HyperSpy place the element lines correctly.
-
-im = p.get_lines_intensity() # 
-
-hs.plot.plot_images(im, tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
-    colorbar='single', vmin='1th', vmax='99th', scalebar='all',
-    scalebar_color='black', suptitle_fontsize=16,
-    padding={'top':0.8, 'bottom':0.10, 'left':0.05,
-              'right':0.85, 'wspace':0.20, 'hspace':0.10})
 
 
 
@@ -71,40 +67,16 @@ factors = p.get_decomposition_factors()
 loadings =p.get_decomposition_loadings()
 
 # Plotting NMF
-hs.plot.plot_spectra(factors.isig[0.0:10000.0],style='cascade')
-plt.title('NMF')
-plt.text(x=8040, y=0.8, s='Cu-K$_\\alpha$', color='k')
-plt.axvline(8040, c='k', ls=':', lw=0.5)
-plt.text(x=930, y=0.8, s='Cu-L$_\\alpha$', color='k')
-plt.axvline(930, c='k', ls=':', lw=0.5)
-plt.axvline(2984, c='k', ls=':', lw=0.5)
-plt.text(x=2984, y=0.8, s='Ag-L$_\\alpha$', color='k')
+orBlueMapCuAg(factors,loadings,'NMF')
 
-hs.plot.plot_images(loadings, cmap='mpl_colors',
-                    axes_decor='off', per_row=3,
-                    scalebar=[0], scalebar_color='white',
-                    padding={'top': 0.95, 'bottom': 0.05,
-                             'left': 0.05, 'right':0.78})
 
 p.blind_source_separation(number_of_components=dim) # BSS Based on the already performed NMF.
 bssfac = p.get_bss_factors()
 bssload = p.get_bss_loadings()
 
 # Plotting BSS
-hs.plot.plot_spectra(bssfac.isig[0.0:10000.0],style='cascade') 
-plt.title('NMF+BSS with fastICA')
-plt.axvline(8040, c='k', ls=':', lw=0.5)
-plt.text(x=8040, y=1.6, s='Cu-K$_\\alpha$', color='k')
-plt.axvline(2984, c='k', ls=':', lw=0.5)
-plt.text(x=2984, y=1.6, s='Ag-L$_\\alpha$', color='k')
-plt.axvline(930, c='k', ls=':', lw=0.5)
-plt.text(x=930, y=1.6, s='Cu-L$_\\alpha$', color='k')
+orBlueMapCuAg(bssfac,bssload,'NMF+BSS with fastICA')
 
-hs.plot.plot_images(bssload, cmap='mpl_colors',
-                    axes_decor='off', per_row=3,
-            scalebar=[0], scalebar_color='white',
-            padding={'top': 0.95, 'bottom': 0.05,
-                  'left': 0.05, 'right':0.78})
 
 #%% Total Sums of Errors
 ''' Here the total sum of errors is calculated for the different image comparisons. '''
@@ -125,21 +97,21 @@ errBSSshell = SpecErrAbs2D(BSSspec.inav[1],shell)
 #%% Error Maps 
 ''' Here error maps are calculated by subtractng the original images from the ones made from factors and loadings. '''
 NMFcompareTot = specMapDiff(p,NMFparticle)
-NMFcompareTot = setCalibration(NMFcompareTot, cal)
+NMFcompareTot = setCalibrationCuAg(NMFcompareTot, cal)
 NMFcompareCore = specMapDiff(core, NMFspec.inav[0])
-NMFcompareCore = setCalibration(NMFcompareCore,cal)
+NMFcompareCore = setCalibrationCuAg(NMFcompareCore,cal)
 NMFcompareShell = specMapDiff(shell,NMFspec.inav[1])
-NMFcompareShell = setCalibration(NMFcompareShell,cal)
+NMFcompareShell = setCalibrationCuAg(NMFcompareShell,cal)
 
 BSScompareTot = specMapDiff(p,BSSparticle)
-BSScompareTot = setCalibration(BSScompareTot, cal)
+BSScompareTot = setCalibrationCuAg(BSScompareTot, cal)
 BSScompareCore = specMapDiff(core, BSSspec.inav[0])
-BSScompareCore = setCalibration(BSScompareCore, cal)
+BSScompareCore = setCalibrationCuAg(BSScompareCore, cal)
 BSScompareShell = specMapDiff(shell, BSSspec.inav[1])
-BSScompareShell = setCalibration(BSScompareShell, cal)
+BSScompareShell = setCalibrationCuAg(BSScompareShell, cal)
 
 #%% 
-''' This just divides the maps into signals of Ag and Cu by themselfes. '''
+''' This just divides the maps into signals of Ag and Cu by themselves. '''
 imNMFcompTot = NMFcompareTot.get_lines_intensity()
 imNMFcompCore = NMFcompareCore.get_lines_intensity()
 imNMFcompShell = NMFcompareShell.get_lines_intensity()
@@ -149,7 +121,7 @@ imBSScompShell = BSScompareShell.get_lines_intensity()
 
 #%% Relative error maps
 '''  '''
-particle = setCalibration(particle, cal)
+particle = setCalibrationCuAg(particle, cal)
 imComp = particle.get_lines_intensity()
 
 relNMFcompTot = [rel(imNMFcompTot[0], imComp[0]),rel(imNMFcompTot[1], imComp[1])]
@@ -166,22 +138,15 @@ NMFplot = [imNMFcompTot[0], imNMFcompCore[0], imNMFcompShell[0], imNMFcompTot[1]
 NMFtitle = 'NMF absolute error X-ray maps'
 NMFlabel = ['Ag abs.diff Tot','Ag abs.diff Core','Ag abs.diff Shell',
             'Cu abs.diff Tot','Cu abs.diff Core','Cu abs.diff Shell']
-hs.plot.plot_images(NMFplot,suptitle=NMFtitle, label=NMFlabel,  cmap='RdYlBu_r', axes_decor='off',
-    colorbar='single', vmin='1th', vmax='99th', scalebar='all',
-    scalebar_color='black', suptitle_fontsize=16,
-    padding={'top':0.8, 'bottom':0.10, 'left':0.05,
-              'right':0.85, 'wspace':0.20, 'hspace':0.10})
+redBlueMap(NMFplot,NMFtitle,NMFlabel)
+
 
 BSSplot = [imBSScompTot[0], imBSScompCore[0], imBSScompShell[0], imBSScompTot[1], imBSScompCore[1], imBSScompShell[1]]
 
 BSStitle = 'BSS absolute error X-ray maps'
 BSSlabel = ['Ag abs.diff Tot','Ag abs.diff Core','Ag abs.diff Shell',
             'Cu abs.diff Tot','Cu abs.diff Core','Cu abs.diff Shell']
-hs.plot.plot_images(BSSplot,suptitle=BSStitle, label=BSSlabel,  cmap='RdYlBu_r', axes_decor='off',
-    colorbar='single', vmin='1th', vmax='99th', scalebar='all',
-    scalebar_color='black', suptitle_fontsize=16,
-    padding={'top':0.8, 'bottom':0.10, 'left':0.05,
-              'right':0.85, 'wspace':0.20, 'hspace':0.10})
+redBlueMap(BSSplot, BSStitle, BSSlabel)
 
 #%% Plotting relative maps
 
@@ -190,22 +155,15 @@ NMFplot = [relNMFcompTot[0], relNMFcompCore[0], relNMFcompShell[0], relNMFcompTo
 NMFtitle = 'NMF relative error X-ray maps'
 BSSlabel = ['Ag rel.diff Tot','Ag rel.diff Core','Ag rel.diff Shell',
             'Cu rel.diff Tot','Cu rel.diff Core','Cu rel.diff Shell']
-hs.plot.plot_images(NMFplot,suptitle=NMFtitle, label=BSSlabel,  cmap='RdYlBu_r', axes_decor='off',
-    colorbar='single', vmin='1th', vmax='99th', scalebar='all',
-    scalebar_color='black', suptitle_fontsize=16,
-    padding={'top':0.8, 'bottom':0.10, 'left':0.05,
-              'right':0.85, 'wspace':0.20, 'hspace':0.10})
+redBlueMap(NMFplot,NMFtitle,NMFlabel)
 
 BSSplot = [relBSScompTot[0], relBSScompCore[0], relBSScompShell[0], relBSScompTot[1], relBSScompCore[1], relBSScompShell[1]]
 
 BSStitle = 'BSS relative error x-ray maps'
 BSSlabel = ['Ag rel.diff Tot','Ag rel.diff Core','Ag rel.diff Shell',
             'Cu rel.diff Tot','Cu rel.diff Core','Cu rel.diff Shell']
-hs.plot.plot_images(BSSplot,suptitle=BSStitle, label=BSSlabel,  cmap='RdYlBu_r', axes_decor='off',
-    colorbar='single', vmin='1th', vmax='99th', scalebar='all',
-    scalebar_color='black', suptitle_fontsize=16,
-    padding={'top':0.8, 'bottom':0.10, 'left':0.05,
-              'right':0.85, 'wspace':0.20, 'hspace':0.10})
+redBlueMap(BSSplot,BSStitle, BSSlabel)#hs.plot.plot_images(BSSplot,suptitle=BSStitle, label=BSSlabel,  cmap='RdYlBu_r', axes_decor='off',
+    
 
 #%% Quantification
 '''  '''
@@ -288,8 +246,3 @@ bw = BSSsh.estimate_background_windows(line_width=[5.0, 2.0])
 intensities = BSSsh.get_lines_intensity(background_windows=bw)
 BSSweight_percent_cu_shell = BSSsh.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[1].data
 BSSweight_percent_ag_shell = BSSsh.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[0].data
-
-
-
-
-
