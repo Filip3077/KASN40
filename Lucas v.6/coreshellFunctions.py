@@ -19,26 +19,32 @@ def genfullparticle(size,r1,r2,specCore,specShell,signal=True,dens1=1,dens2=1,l=
 
 class postStatprocess:
     '''  '''
-    def __init__(self,core,shell,Statfac=[],Statload=[],calSpec=[]):
+    def __init__(self,core,shell,Statfac,Statload,components=2,calSpec=[]):
         '''  '''
         particle = core + shell
         Statspec = cLoadsFacs(Statload, Statfac)
-        Statcoretest1 = SpecErrAbs2D(Statspec.inav[0],core)
-        Statcoretest2 = SpecErrAbs2D(Statspec.inav[1],core)
-        Statshelltest1 = SpecErrAbs2D(Statspec.inav[1],shell)
-        Statshelltest2 = SpecErrAbs2D(Statspec.inav[0],shell)
-        print('Coretest1: '+str(Statcoretest1)+'\nCoretest2: '+str(Statcoretest2)+'\nShelltest1: '+str(Statshelltest1)+'\nShelltest2: '+str(Statshelltest2))
-        if Statcoretest1 < Statcoretest2 and Statshelltest1 < Statshelltest2:
-            self.core = Statspec.inav[0]
-            self.shell = Statspec.inav[1]
-            self.full = self.core + self.shell
-        elif Statcoretest1 > Statcoretest2 and Statshelltest1 > Statshelltest2:
-            self.core = Statspec.inav[1]
-            self.shell = Statspec.inav[0]
-            self.full = self.core + self.shell
-        else:
-            print('One or more of the reconstructed images match neither the core nor shell')
+        statcoretest = []
+        statshelltest = []
+        statcore = 1000
+        statshell = 1000
         
+        for i in range(components):
+            statcoretest.append(SpecErrAbs2D(Statspec.inav[i], core))
+            statshelltest.append(SpecErrAbs2D(Statspec.inav[i], shell))
+            if statcoretest[i] < statcore:
+                statcore = statcoretest[i]
+                c = i
+            if statshelltest[i] < statshell:
+                statshell = statshelltest[i]
+                s = i
+        if statcore == statshell:
+            print('Warnig! It guessed the same component for core and shell.')
+                
+        self.core = Statspec.inav[c]
+        self.corecomp = c
+        self.shell = Statspec.inav[s]
+        self.shellcomp = s
+        self.full = self.core + self.shell
         # Sum of Errors:
         self.errtot = SpecErrAbs2D(self.full,particle)
         self.errcore = SpecErrAbs2D(self.core,core)

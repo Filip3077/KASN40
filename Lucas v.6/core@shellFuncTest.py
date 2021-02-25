@@ -7,10 +7,10 @@ Created on Wed Feb 24 09:02:33 2021
 
 import matplotlib.pyplot as plt
 import hyperspy.api as hs
-from coreshellFunctions import *
+from coreshellFunctions import postStatprocess, genfullparticle
 # from coreshellp import CoreShellP, CoreShellSpec
 # from specerr import *
-# from specMapDiff import *
+from specMapDiff import *
 import numpy as np
 
 
@@ -46,7 +46,7 @@ hs.plot.plot_images(im, tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
 
 #%% Statistical Methods
 
-dim = 2 # Since we only have the two elements in the particle only two components is needed for NMF and BSS.
+dim = 3 # Since we only have the two elements in the particle only two components is needed for NMF and BSS.
 p.decomposition(True,algorithm='NMF',output_dimension =dim)
 factors = p.get_decomposition_factors() 
 loadings =p.get_decomposition_loadings()
@@ -87,6 +87,7 @@ hs.plot.plot_images(bssload, cmap='mpl_colors',
                   'left': 0.05, 'right':0.78})
 #%% Postprocessing
 
-NMFpost = postStatprocess(a.core,a.shell,factors,loadings,cal)
+NMFpost = postStatprocess(a.core,a.shell,factors,loadings,dim,cal)
+BSSpost = postStatprocess(a.core,a.shell,bssfac,bssload,dim,cal)
 
 

@@ -31,10 +31,11 @@ def setCalibration(ucMap,calSpec=[]):
     ucMap.axes_manager['x'].units = 'nm'
     ucMap.axes_manager['y'].units = 'nm'
     ucMap.axes_manager[-1].name = 'E'
-    ucMap.add_elements(['Ag','Cu'])
-    ucMap.add_lines(['Ag_La','Cu_Ka'])
     if len(calSpec)>0:
         ucMap.get_calibration_from(calSpec)
+    ucMap.add_elements(['Ag','Cu'])
+    ucMap.add_lines(['Ag_La','Cu_Ka'])
+    
     return ucMap
 
 def cLoadsFacs(loads,facs):
