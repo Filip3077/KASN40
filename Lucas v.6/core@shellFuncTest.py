@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 import hyperspy.api as hs
 from coreshellFunctions import *
 # from coreshellp import CoreShellP, CoreShellSpec
-from specerr import *
-from specMapDiff import *
+# from specerr import *
+# from specMapDiff import *
 import numpy as np
 
 
@@ -85,4 +85,8 @@ hs.plot.plot_images(bssload, cmap='mpl_colors',
             scalebar=[0], scalebar_color='white',
             padding={'top': 0.95, 'bottom': 0.05,
                   'left': 0.05, 'right':0.78})
-#%%
+#%% Postprocessing
+
+NMFpost = postStatprocess(a.core,a.shell,factors,loadings,cal)
+
+

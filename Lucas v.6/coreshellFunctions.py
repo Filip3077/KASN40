@@ -17,33 +17,60 @@ def genfullparticle(size,r1,r2,specCore,specShell,signal=True,dens1=1,dens2=1,l=
     a = CoreShellP(size,r1,r2,dens1,dens2,l) 
     return CoreShellSpec(a,specCore,specShell,signal)
 
-
-def postNMFBSSprocess(core,shell,NMFfac=[],NMFload=[],BSSfac=[],BSSload=[]):
+class postStatprocess:
     '''  '''
-    if len(NMFfac) == 0:
-        
-    else:
-        NMFspec = cLoadsFacs(loadings, factors)
-        NMFcoretest1 = SpecErrAbs2D(NMFspec.inav[0],core)
-        NMFcoretest2 = SpecErrAbs2D(NMFspec.inav[1],core)
-        if NMFcoretest1 > NMFcoretest2:
-            NMFcore = NMFspec.inav[0]
-            NMFshell = NMFspec.inav[1]
+    def __init__(self,core,shell,Statfac=[],Statload=[],calSpec=[]):
+        '''  '''
+        particle = core + shell
+        Statspec = cLoadsFacs(Statload, Statfac)
+        Statcoretest1 = SpecErrAbs2D(Statspec.inav[0],core)
+        Statcoretest2 = SpecErrAbs2D(Statspec.inav[1],core)
+        Statshelltest1 = SpecErrAbs2D(Statspec.inav[1],shell)
+        Statshelltest2 = SpecErrAbs2D(Statspec.inav[0],shell)
+        print('Coretest1: '+str(Statcoretest1)+'\nCoretest2: '+str(Statcoretest2)+'\nShelltest1: '+str(Statshelltest1)+'\nShelltest2: '+str(Statshelltest2))
+        if Statcoretest1 < Statcoretest2 and Statshelltest1 < Statshelltest2:
+            self.core = Statspec.inav[0]
+            self.shell = Statspec.inav[1]
+            self.full = self.core + self.shell
+        elif Statcoretest1 > Statcoretest2 and Statshelltest1 > Statshelltest2:
+            self.core = Statspec.inav[1]
+            self.shell = Statspec.inav[0]
+            self.full = self.core + self.shell
         else:
-            NMFcore = NMFspec.inav[1]
-            NMFshell = NMFspec.inav[0]
-    if len(BSSfac) == 0:
+            print('One or more of the reconstructed images match neither the core nor shell')
         
-    else:
-        BSSspec = cLoadsFacs(bssload,bssfac)
-        BSScoretest1 = SpecErrAbs2D(BSS.inav[0],core)
-        BSScoretest2 = SpecErrAbs2D(BSS.inav[1],core)
-        if BSScoretest1 > BSScoretest2:
-            BSScore = BSSspec.inav[0]
-            BSSshell = BSSspec.inav[1]
+        # Sum of Errors:
+        self.errtot = SpecErrAbs2D(self.full,particle)
+        self.errcore = SpecErrAbs2D(self.core,core)
+        self.errshell = SpecErrAbs2D(self.shell,shell)
+        
+        # Error maps:
+        errmaptot = specMapDiff(self.full, particle)
+        errmapcore = specMapDiff(self.core, core)
+        errmapshell = specMapDiff(self.shell, shell)
+        if len(calSpec)==0:
+            print('Warning! Not specifying a calSpec can mess with the error maps.')
+            errmaptot = errmaptot
+            errmapcore = errmapcore
+            errmapshell = errmapshell
+            imparticle = particle
+            
         else:
-            BSScore = BSSspec.ina[1]
-            BSSshell = BSSspec.inav[0]
+            errmaptot = setCalibration(errmaptot, calSpec)
+            errmapcore = setCalibration(errmapcore, calSpec)
+            errmapshell = setCalibration(errmapshell, calSpec)
+            imparticle = setCalibration(particle, calSpec)
+        
+        self.errmaptot = errmaptot.get_lines_intensity()
+        self.errmapcore = errmapcore.get_lines_intensity()
+        self.errmapshell = errmapshell.get_lines_intensity()
+        imComp = imparticle.get_lines_intensity()
+        
+        self.relmaptot = [rel(self.errmaptot[0], imComp[0]),rel(self.errmaptot[1], imComp[1])]
+        self.relmapcore = [rel(self.errmapcore[0], imComp[0]),rel(self.errmapcore[1], imComp[1])]
+        self.relmapshell = [rel(self.errmapshell[0], imComp[0]),rel(self.errmapshell[1], imComp[1])]
+        
+        
         
     
     

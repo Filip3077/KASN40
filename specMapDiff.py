@@ -24,16 +24,17 @@ def rel(EF_map,ref):
     return refMap
 
 
-def setCalibration(ucMap,calSpec):
+def setCalibration(ucMap,calSpec=[]):
     ucMap.set_signal_type("EDS_TEM")
     ucMap.axes_manager[0].name = 'y'
     ucMap.axes_manager[1].name = 'x'
     ucMap.axes_manager['x'].units = 'nm'
     ucMap.axes_manager['y'].units = 'nm'
     ucMap.axes_manager[-1].name = 'E'
-    ucMap.get_calibration_from(calSpec)
     ucMap.add_elements(['Ag','Cu'])
     ucMap.add_lines(['Ag_La','Cu_Ka'])
+    if len(calSpec)>0:
+        ucMap.get_calibration_from(calSpec)
     return ucMap
 
 def cLoadsFacs(loads,facs):
