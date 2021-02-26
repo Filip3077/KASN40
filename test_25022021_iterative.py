@@ -46,7 +46,8 @@ core = a[1].core#list(map(lambda a: a.getmatr(),all))
 shell = a[1].shell#list(map(lambda a: a.getmatr(),all))
 particle = core + shell
 
-p = hs.signals.Signal1D(particle)
+pp = hs.signals.Signal1D(particle)
+p=hs.signals.Signal1D(pp)
 p.add_poissonian_noise() # Adds poissonian noise to the existing spectra.
 cal = hs.load("./Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")#Kalibreringsdata
 # For nicer plots, HyperSpy needs some meta data:
@@ -121,7 +122,7 @@ imBSScompShell = BSScompareShell.get_lines_intensity()
 
 #%% Relative error maps
 '''  '''
-particle = setCalibrationCuAg(particle, cal)
+particle = setCalibration(particle, cal)
 imComp = particle.get_lines_intensity()
 
 relNMFcompTot = [rel(imNMFcompTot[0], imComp[0]),rel(imNMFcompTot[1], imComp[1])]
@@ -167,8 +168,8 @@ redBlueMap(BSSplot,BSStitle, BSSlabel)#hs.plot.plot_images(BSSplot,suptitle=BSSt
 
 #%% Quantification
 '''  '''
-core_spec = np.sum(a.core,(0,1))
-shell_spec = np.sum(a.shell,(0,1))
+core_spec = np.sum(a[1].core,(0,1))
+shell_spec = np.sum(a[1].shell,(0,1))
 
 
 co = hs.signals.Signal1D(core_spec)

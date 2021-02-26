@@ -56,7 +56,7 @@ def rel(EF_map,ref):
     return refMap
 
 
-def setCalibrationCuAg(ucMap,calSpec):
+def setCalibration(ucMap,calSpec):
     ucMap.set_signal_type("EDS_TEM")
     ucMap.axes_manager[0].name = 'y'
     ucMap.axes_manager[1].name = 'x'
