@@ -10,6 +10,7 @@ from coreshellp import CoreShellP,CoreShellSpec
 import numpy as np
 from specMapDiff import specMapDiff,cLoadsFacs,setCalibration,rel
 from specerr import *
+from ErrorStack import ErrorStack
 
 s = hs.load("./Spectra/MC simulation of  a 0.020 µm base, 0.020 µm high block*.msa",stack=True,signal_type="EDS_TEM")
 sAg = s.inav[0]
@@ -37,7 +38,7 @@ print(avgcounts)
 
 
 decomp_dim = 2
-cs.decomposition(output_dimension = decomp_dim ,algorithm='NMF')
+cs.decomposition(output_dimension = decomp_dim ,algorithm='sklearn_pca')
 NMF_facs = cs.get_decomposition_factors()
 NMF_loads = cs.get_decomposition_loadings()
 
@@ -61,33 +62,15 @@ hs.plot.plot_images(bss_loads, cmap='mpl_colors',
             padding={'top': 0.95, 'bottom': 0.05,
                      'left': 0.05, 'right':0.78})
 
-NMF = cLoadsFacs(NMF_loads,NMF_facs)
-BSS = cLoadsFacs(bss_loads,bss_facs)
+NMF = ErrorStack(NMF_facs,NMF_loads,[core,shell],['Core','Shell'])
 
-NMFShellDiff = specMapDiff(NMF.inav[0],shell)
-NMFCoreDiff = specMapDiff(NMF.inav[1],core)
-NMFShellDiff.plot()
 
-NMFShellDiff = setCalibration(NMFShellDiff,sAg)
-imNMFShell = NMFShellDiff.get_lines_intensity()
-
-imShell = shell.get_lines_intensity()
-
-relNMFAg = rel(imNMFShell[0],imShell[0])
-relNMFCu = rel(imNMFShell[1],imShell[1])
-relNMF = [relNMFAg,relNMFCu]
+relNMF = NMF.stack[0].relMaps + NMF.stack[1].relMaps
 
 hs.plot.plot_images(relNMF,  cmap='RdYlBu_r', axes_decor='off',
     colorbar='single', vmin='1th', vmax='99th', scalebar='all',
-    label = ['Silver Diff%','Koppar Diff%'],
     scalebar_color='black', suptitle_fontsize=16,
     padding={'top':0.8, 'bottom':0.10, 'left':0.05,
              'right':0.85, 'wspace':0.20, 'hspace':0.10})
 
 
-hs.plot.plot_images(imNMFShell,  cmap='RdYlBu_r', axes_decor='off',
-    colorbar='single', vmin='1th', vmax='99th', scalebar='all',
-    label = ['Silver Diff abs','Koppar Diff abs'],
-    scalebar_color='black', suptitle_fontsize=16,
-    padding={'top':0.8, 'bottom':0.10, 'left':0.05,
-             'right':0.85, 'wspace':0.20, 'hspace':0.10})

@@ -6,7 +6,7 @@ Created on Fri Feb 19 15:39:07 2021
 """
 import hyperspy.api as hs
 import numpy as np
-from specerr import *
+from specerr import SpecErrAbs2D
 
 def specMapDiff(map1,refMap):
     #Om map1 och map2 är hyperspy objekt går det helt enkelt att ta differensen direkt samt att ta absolutvärdet av denna. Om dimentionerna stämmer dvs. 
@@ -18,7 +18,7 @@ def rel(EF_map,ref):
     '''
     Tar den relativa 
     '''
-    refMap = EF_map.data/ref.data
+    refMap = np.divide(EF_map.data, ref.data, out=np.zeros_like(EF_map.data), where=ref.data!=0)
     where_are_NaNs = np.isnan(refMap)
     refMap[where_are_NaNs] = 0
     refMap = hs.signals.BaseSignal(refMap).T
@@ -42,22 +42,27 @@ def cLoadsFacs(loads,facs):
     #För att få ett korrekta dimentioner på  hyperspy objektet böhöver loads transponeras från [| x y]  till [x y |] har att göra med hur energiaxeln behandlas 
     
     dim = len(loads)
-    size = len(loads.isig)
-    esize = len(facs.isig)
-    combinedMat = np.empty((dim,size,size,esize))
+
+    combinedMat = []
     
     for i in range(dim):
         #För att få ett korrekta dimentioner på  hyperspy objektet behöver loads transponeras från [| x y]  till [x y |] har att göra med hur energiaxeln behandlas 
-        combinedMat[i] = (loads.inav[i].T*facs.inav[i]).data
-    
-    
-    combined = hs.signals.BaseSignal(combinedMat)
-    combined=combined.transpose(signal_axes=[0],navigation_axes=[3, 2, 1])
-    return combined
+        combinedMat.append(loads.inav[i].T*facs.inav[i])
+    return combinedMat
 
-class mapError(hs.signals.Signal1D):
-    def __init__(self, map1, refMap):
-        errorMap = specMapDiff(map1,refMap)
-        super().__init__(errorMap)
-        
-        
+    
+
+
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
