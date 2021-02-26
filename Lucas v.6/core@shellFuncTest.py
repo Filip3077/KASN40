@@ -65,7 +65,7 @@ hs.plot.plot_images(loadings, cmap='mpl_colors',
                     axes_decor='off', per_row=3,
                     scalebar=[0], scalebar_color='white',
                     padding={'top': 0.95, 'bottom': 0.05,
-                             'left': 0.05, 'right':0.78})
+                              'left': 0.05, 'right':0.78})
 
 p.blind_source_separation(number_of_components=dim)#,algorithm="orthomax"
 bssfac = p.get_bss_factors()
@@ -86,13 +86,31 @@ hs.plot.plot_images(bssload, cmap='mpl_colors',
             padding={'top': 0.95, 'bottom': 0.05,
                   'left': 0.05, 'right':0.78})
 #%% Postprocessing
+
 from coreshellFunctions import postStatprocess, genfullparticle
 
 NMFpost = postStatprocess(a.core,a.shell,factors,loadings,dim,cal)
 BSSpost = postStatprocess(a.core,a.shell,bssfac,bssload,dim,cal)
-kfactors = [0.72980399,1.0]
+kfactors = [1.0,0.72980399]
 NMFpost.quantify(kfactors)
 print('CoreCu: '+str(NMFpost.coreCu)+'\nCoreAg: '+str(NMFpost.coreAg)+
       '\nShellCu: '+str(NMFpost.shellCu)+'\nShellAg: '+str(NMFpost.shellAg))
 
+BSSpost.quantify(kfactors)
+print('CoreCu: '+str(BSSpost.coreCu)+'\nCoreAg: '+str(BSSpost.coreAg)+
+      '\nShellCu: '+str(BSSpost.shellCu)+'\nShellAg: '+str(BSSpost.shellAg))
 
+pos = [25,25]
+core = setCalibration(a.core,cal)
+shell = setCalibration(a.shell,cal)
+core = core.inav[pos]
+shell = shell.inav[pos]
+bw = core.estimate_background_windows(line_width=[5.0, 7.0])
+intensities = core.get_lines_intensity(background_windows=bw)
+weight_percent_cu_core = core.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[1].data
+weight_percent_ag_core = core.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[0].data
+
+bw = shell.estimate_background_windows(line_width=[5.0, 7.0])
+intensities = shell.get_lines_intensity(background_windows=bw)
+weight_percent_cu_shell = shell.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[1].data
+weight_percent_ag_shell = shell.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[0].data

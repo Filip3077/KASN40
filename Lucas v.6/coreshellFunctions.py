@@ -91,29 +91,17 @@ class postStatprocess:
         # Quantification
     def quantify(self,kfac):
         ''' Quantifies the elements in the core and shell using choosen k-factors. '''
-        factors = self.factors.data
-        co = hs.signals.Signal1D(factors[self.corecomp])
-        # co = setCalibration(co,self.calSpec)
-        sh = hs.signals.Signal1D(factors[self.shellcomp])
-        # sh = setCalibration(sh,self.calSpec)
-        
-        co.set_signal_type("EDS_TEM")
-        sh.set_signal_type("EDS_TEM")
-        co.axes_manager.signal_axes[0].units = 'keV'
-        sh.axes_manager.signal_axes[0].units = 'keV'
-        co.add_elements(['Ag','Cu'])
-        sh.add_elements(['Ag','Cu'])
-        co.add_lines(['Ag_La','Cu_Ka'])
-        sh.add_lines(['Ag_La','Cu_Ka'])
-        co.get_calibration_from(self.calSpec)
-        sh.get_calibration_from(self.calSpec)
-        bw = co.estimate_background_windows(line_width=[5.0, 2.0])
-        intensities = co.get_lines_intensity(background_windows=bw)
-        self.coreCu = co.quantification(intensities, method='CL', factors=kfac,composition_units='weight')[1].data
-        self.coreAg = co.quantification(intensities, method='CL', factors=kfac,composition_units='weight')[0].data
-        intensities = sh.get_lines_intensity(background_windows=bw)
-        self.shellCu = sh.quantification(intensities, method='CL', factors=kfac,composition_units='weight')[1].data
-        self.shellAg = sh.quantification(intensities, method='CL', factors=kfac,composition_units='weight')[0].data
+        factors = self.factors
+        factors = setCalibration(factors, self.calSpec)
+    
+        bw = factors.inav[self.corecomp].estimate_background_windows(line_width=[5.0, 7.0])
+        intensities = factors.inav[self.corecomp].get_lines_intensity(background_windows=bw)
+        self.coreCu = factors.inav[self.corecomp].quantification(intensities, method='CL', factors=kfac,composition_units='weight')[1].data
+        self.coreAg = factors.inav[self.corecomp].quantification(intensities, method='CL', factors=kfac,composition_units='weight')[0].data
+        bw = factors.inav[self.shellcomp].estimate_background_windows(line_width=[5.0, 7.0])
+        intensities = factors.inav[self.shellcomp].get_lines_intensity(background_windows=bw)
+        self.shellCu = factors.inav[self.shellcomp].quantification(intensities, method='CL', factors=kfac,composition_units='weight')[1].data
+        self.shellAg = factors.inav[self.shellcomp].quantification(intensities, method='CL', factors=kfac,composition_units='weight')[0].data
         
         
     

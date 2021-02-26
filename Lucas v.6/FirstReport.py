@@ -228,7 +228,7 @@ co.get_calibration_from(cal)
 sh.get_calibration_from(cal)
 
 
-kfactors = [1.0, 0.72980399]
+kfactors = [0.72980399,1.0]
 bw = co.estimate_background_windows(line_width=[5.0, 2.0])
 intensities = co.get_lines_intensity(background_windows=bw)
 weight_percent_cu_core = co.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')[1].data
