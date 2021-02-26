@@ -86,8 +86,13 @@ hs.plot.plot_images(bssload, cmap='mpl_colors',
             padding={'top': 0.95, 'bottom': 0.05,
                   'left': 0.05, 'right':0.78})
 #%% Postprocessing
+from coreshellFunctions import postStatprocess, genfullparticle
 
 NMFpost = postStatprocess(a.core,a.shell,factors,loadings,dim,cal)
 BSSpost = postStatprocess(a.core,a.shell,bssfac,bssload,dim,cal)
+kfactors = [0.72980399,1.0]
+NMFpost.quantify(kfactors)
+print('CoreCu: '+str(NMFpost.coreCu)+'\nCoreAg: '+str(NMFpost.coreAg)+
+      '\nShellCu: '+str(NMFpost.shellCu)+'\nShellAg: '+str(NMFpost.shellAg))
 
 
