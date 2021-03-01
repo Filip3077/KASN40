@@ -41,14 +41,16 @@ shell = [y.shell for y in a]
 #core=list(map(lambda x: hs.signals.Signal1D(x),core))
 #shell=list(map(lambda x: hs.signals.Signal1D(x),shell))
 parts=[y.getmatr() for y in a]
-#plist=list(map(lambda x: hs.signals.Signal1D(x),parts));
-plist=parts
+plist=list(map(lambda x: hs.signals.Signal1D(x),[x.data for x in parts]));
+clist=list(map(lambda x: hs.signals.Signal1D(x),core))
+slist=list(map(lambda x: hs.signals.Signal1D(x), shell))
+#plist=parts
 for a in plist:
     a.add_poissonian_noise()# Adds poissonian noise to the existing spectra.
 cal = hs.load("./Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")#Kalibreringsdata
 # For nicer plots, HyperSpy needs some meta data:
 for a in plist:
-    a=setCalibrationCuAg(a, cal)
+    a=setCalibration(a, cal)
 #Make image
 imList=[y.get_lines_intensity() for y in plist]
 for im in imList:
@@ -66,7 +68,7 @@ for i in range(len(plist)):
     NMFspec1 = cLoadsFacs(loadings, factors)
     NMFparticle1 = NMFspec1.inav[0] + NMFspec1.inav[1]
     orBlueMapCuAg(factors,loadings,'NMF')
-    err.append(SpecErrAbs2D(NMFparticle1,parts[i]))
+    err.append(SpecErrAbs2D(NMFparticle1,plist[i]))
     coreerr.append(SpecErrAbs2D(NMFspec1.inav[0],core[i]))
     shellerr.append(SpecErrAbs2D(NMFspec1.inav[1],shell[i]))
     NMFparts.append(NMFparticle1);
