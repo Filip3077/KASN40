@@ -38,7 +38,22 @@ SI.plot()
 SI = setCalibration(SI,sCu)
 
 decomp_dim = 3
-cs.decomposition(output_dimension = decomp_dim ,algorithm='NMF')
-NMF_facs = cs.get_decomposition_factors()
-NMF_loads = cs.get_decomposition_loadings()
+SI.decomposition(output_dimension = decomp_dim ,algorithm='NMF')
+NMF_facs = SI.get_decomposition_factors()
+NMF_loads = SI.get_decomposition_loadings()
  
+hs.plot.plot_spectra(NMF_facs.isig[0.0:10000.0],style='cascade') 
+hs.plot.plot_images(NMF_loads, cmap='mpl_colors',
+            scalebar=[0], scalebar_color='white',
+            padding={'top': 0.95, 'bottom': 0.05,
+                     'left': 0.05, 'right':0.78})
+    
+SI.blind_source_separation(number_of_components=decomp_dim)#,algorithm="orthomax"
+bss_facs = SI.get_bss_factors()
+bss_loads = SI.get_bss_loadings()
+
+hs.plot.plot_spectra(bss_facs,style='cascade') 
+hs.plot.plot_images(bss_loads, cmap='mpl_colors',
+            scalebar=[0], scalebar_color='white',
+            padding={'top': 0.95, 'bottom': 0.05,
+                     'left': 0.05, 'right':0.78})

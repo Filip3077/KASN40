@@ -11,17 +11,19 @@ import numpy as np
 from specMapDiff import specMapDiff,cLoadsFacs,setCalibration,rel
 from specerr import *
 from ErrorStack import ErrorStack
-
+from ROI4_hyperspy import varimax
 s = hs.load("./Spectra/MC simulation of  a 0.020 µm base, 0.020 µm high block*.msa",stack=True,signal_type="EDS_TEM")
 sAg = s.inav[0]
 sCu = s.inav[-1]
 
+sCore  = sCu*0.9 + sAg*0.1
+sShell = sCu*0.1 + sAg*0.9
 
 size = 100
 cs_mat = CoreShellP(size,30.0,20.0,1,1,1)
 cs_mat.scale(1e-1)
 
-CoreShell = CoreShellSpec(cs_mat,sCu,sAg)
+CoreShell = CoreShellSpec(cs_mat,sCore,sShell)
 
 core = hs.signals.Signal1D(CoreShell.core)
 core = setCalibration(core,sAg)
@@ -74,3 +76,17 @@ hs.plot.plot_images(relNMF,  cmap='RdYlBu_r', axes_decor='off',
              'right':0.85, 'wspace':0.20, 'hspace':0.10})
 
 
+pos = [50,50]
+
+LC_factors = [1, 0.72980399]
+Sbw = shell.inav[pos].estimate_background_windows(line_width=[5.0, 8.0])
+Shellim = shell.inav[pos].get_lines_intensity(background_windows=Sbw)
+shellQ = shell.inav[pos].quantification(Shellim, method='CL', factors=LC_factors,composition_units='weight')
+
+Cbw = core.inav[pos].estimate_background_windows(line_width=[5.0, 8.0])
+Ccim = core.inav[pos].get_lines_intensity(background_windows=Cbw)
+coreQ = core.inav[pos].quantification(Ccim, method='CL', factors=LC_factors,composition_units='weight')
+
+
+print('\n'+str(coreQ[0].data[0]) + '\n' + str(coreQ[1].data[0]) + '\n\n')
+print(str(shellQ[0].data[0]) + '\n' +str(shellQ[1].data[0]))

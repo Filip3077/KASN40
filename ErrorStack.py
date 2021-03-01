@@ -22,6 +22,7 @@ class ErrorStack():
      The stack of errormaps can be found in .stack
      .stack contains a list of all ErrorMaps, one for each component
      '''
+     
     def __init__(self, facs,loads,originalComponents,order = None, elements = ['Ag', 'Cu'], xlines = ['Ag_La','Cu_Ka']):
         self.facs = facs
         self.loads = loads
