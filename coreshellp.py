@@ -64,7 +64,7 @@ class CoreShellSpec:
          '''Takes a CoreShellP object a and inserts the core spectrum \n
          spec1 and the shell spectrum spec2 at the appropriate places.\n
          Both spectra must be HyperSpy 1D signals.'''
-         
+         self.signal=signal
          L=len(spec1.data)
          arr=np.empty((a.size,a.size,L))
          core=arr.copy()
@@ -79,9 +79,34 @@ class CoreShellSpec:
          else:
              self.core=core;
              self.shell=shell;
-            
+         self.full=self.core+self.shell   
          self.base=a;
      def getmatr(self):
          '''Returns the matrix representing the entire core-shell particle'''
-         return self.core+self.shell 
-     
+         return self.core+self.shell
+     def is_signal(self):
+         return self.signal;
+
+class CoreShellBack:
+    def __init__(self,a,spec,dens,signal=True):
+        self.signal=signal;
+        spec=spec.dens
+        l=a.size()
+        L=len(spec)
+        mat=np.zeros((l,l))
+        if signal:
+            for i in range(l):
+                for j in range(l):
+                    mat[i][j][0:L]=hs.signals.Signal1D(spec);
+        else:
+            for i in range(l):
+                for j in range(l):
+                    mat[i][j][0:L]=spec;            
+        self.size=a.size;
+        self.base=a.base;
+        self.back=mat
+        
+    def get_backg:
+        return mat;
+    def is_signal:
+        return self.signal
