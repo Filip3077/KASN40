@@ -17,13 +17,13 @@ def genfullparticle(size,r1,r2,specCore,specShell,signal=True,dens1=1,dens2=1,l=
     a = CoreShellP(size,r1,r2,dens1,dens2,l) 
     return CoreShellSpec(a,specCore,specShell,signal)
 
-def checkLoadFit(self,core,shell,statfac,statload,component=2):
+def checkLoadFit(core,shell,statfac,statload,components=2):
     
    '''Takes the core and shell of a core-shell particle (Hyperspy-signals) as well as \n
    the factors and loadings of a statistical method and returns the indices\n
    of the factor+loading combo that best correspond to core and shell respectively.
     '''
-   Statspec = cLoadsFacs(Statload, Statfac)
+   Statspec = cLoadsFacs(statload, statfac)
    statcoretest = []
    statshelltest = []
    statcore = 1000
