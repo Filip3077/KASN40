@@ -59,20 +59,24 @@ for a in plist:
     a=setCalibration(a, cal)
 #Make image
 imList=[y.get_lines_intensity() for y in plist]
-for im in imList:
-    redBlueMap(im)
+#for im in imList:
+    #redBlueMap(im)
 #%%Köra NMF + specAbsErr2D på alla bilder
 err=[]
 coreerr=[]
 shellerr=[]
 dim=2
 NMFparts=[];
+cchoice=[];
+schoice=[];
 for i in range(len(plist)):
     plist[i].decomposition(True,algorithm='NMF',output_dimension =dim) # The "True" variable tells the function to normalize poissonian noise.
     factors = plist[i].get_decomposition_factors() 
     loadings =plist[i].get_decomposition_loadings()
     #c,s=0,1;
     c,s=checkLoadFit(core[i],shell[i],factors,loadings, dim)
+    cchoice.append(c);
+    schoice.append(s);
     NMFspec1 = cLoadsFacs(loadings, factors)
     NMFparticle1 = NMFspec1.inav[0] + NMFspec1.inav[1]
     orBlueMapCuAg(factors,loadings,'NMF')
@@ -80,6 +84,15 @@ for i in range(len(plist)):
     coreerr.append(SpecErrAbs2D(NMFspec1.inav[c],core[i]))
     shellerr.append(SpecErrAbs2D(NMFspec1.inav[s],shell[i]))
     NMFparts.append(NMFparticle1);
+    
 #%%Plotta
 np.array(coreerr)
+plt.figure(1001)
 plt.plot(ratios, coreerr)
+plt.ylim(0,2)
+cont=str(100*k)
+plt.title(cont+'% Cu in core')
+plt.xlabel('Fraction Cu in shell')
+plt.ylabel('Relative error (core)')
+plt.figure(1002)
+plt.plot(ratios,cchoice)

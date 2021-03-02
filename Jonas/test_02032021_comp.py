@@ -13,6 +13,8 @@ Created on Thu Feb 25 14:46:46 2021
 
 """
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
 import hyperspy.api as hs
 from coreshellp import CoreShellP, CoreShellSpec
 from specerr import *
@@ -22,11 +24,11 @@ from coreshellFunctions import checkLoadFit
 sAgPure = hs.load("./Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
 corrat=np.linspace(0,1,11);
+ratios=np.linspace(0,1,11);
 errt=[];
 cerrt=[];
 serrt=[];
 for k in corrat:
-    ratios=np.linspace(0,1,11);
     cores=np.zeros((1,11,2048));
     shells=np.zeros((1,11,2048))
     
@@ -87,5 +89,24 @@ for k in corrat:
     serrt.append(shellerr);
     errt.append(err);
 #%%Plotta
-    np.array(coreerr)
-    plt.plot(ratios, coreerr)
+carray=np.array(cerrt)
+sarray=np.array(serrt)
+earray=np.array(errt)
+
+for i in range(len(ratios)):
+    plt.figure(i)
+    plt.plot(ratios, carray[i])
+    nr=str(10*i)
+    plt.xlabel('Fraction Cu in shell')
+    plt.ylabel('Relative error in core')
+    plt.title(nr+'% Cu in core')
+    plt.ylim(0,2)
+
+K, I = np.meshgrid(corrat, ratios)
+fig,ax=plt.subplots(1,1)
+cp = ax.contourf(K, I, carray)
+fig.colorbar(cp) # Add a colorbar to a plot
+ax.set_title('Filled Contours Plot')
+ax.set_xlabel('% Cu (shell)')
+ax.set_ylabel('% Cu (core)')#Varje lista i carray hamnar på ett värde på y
+plt.show()
