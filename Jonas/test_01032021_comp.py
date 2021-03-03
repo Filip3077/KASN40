@@ -65,10 +65,13 @@ imList=[y.get_lines_intensity() for y in plist]
 err=[]
 coreerr=[]
 shellerr=[]
+cFac=[];
+sFac=[];
 dim=2
 NMFparts=[];
 cchoice=[];
 schoice=[];
+kfacs = [1,0.72980399]
 for i in range(len(plist)):
     plist[i].decomposition(True,algorithm='NMF',output_dimension =dim) # The "True" variable tells the function to normalize poissonian noise.
     factors = plist[i].get_decomposition_factors() 
@@ -78,12 +81,29 @@ for i in range(len(plist)):
     cchoice.append(c);
     schoice.append(s);
     NMFspec1 = cLoadsFacs(loadings, factors)
+    cFac.append(factors.inav[c]);
+    sFac.append(factors.inav[s]);
     NMFparticle1 = NMFspec1.inav[0] + NMFspec1.inav[1]
-    orBlueMapCuAg(factors,loadings,'NMF')
+    #orBlueMapCuAg(factors,loadings,'NMF')
     err.append(SpecErrAbs2D(NMFparticle1,plist[i]))
     coreerr.append(SpecErrAbs2D(NMFspec1.inav[c],core[i]))
     shellerr.append(SpecErrAbs2D(NMFspec1.inav[s],shell[i]))
     NMFparts.append(NMFparticle1);
+    
+#%%Kvantifiera
+csF=[hs.stack(cFac),hs.stack(sFac)]
+intensities=[]
+for i in range(2):
+    csF[i].set_signal_type("EDS_TEM")
+    csF[i].get_calibration_from(cal)
+    csF[i].add_elements(['Cu','Ag'])
+    csF[i].add_lines()
+    bg = csF[i].estimate_background_windows(line_width=[5.0, 7.0])
+    intensities.append(csF[i].get_lines_intensity(background_windows=bg))
+    
+quant=[]    
+for i in range(len(csF)):
+    quant.append(csF[i].quantification(intensities[i], method='CL', factors=kfacs,composition_units='weight'))
     
 #%%Plotta
 np.array(coreerr)

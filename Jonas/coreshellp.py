@@ -81,12 +81,13 @@ class CoreShellSpec:
              self.shell=shell;
          self.full=self.core+self.shell   
          self.base=a;
+         self
      def getmatr(self):
          '''Returns the matrix representing the entire core-shell particle'''
          return self.core+self.shell
      def is_signal(self):
          return self.signal;
-
+         
 class CoreShellBack:
     def __init__(self,a,spec,dens,signal=True):
         self.signal=signal;
