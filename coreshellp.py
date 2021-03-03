@@ -106,7 +106,7 @@ class CoreShellBack:
         self.base=a.base;
         self.back=mat
         
-    def get_backg:
+    def get_backg():
         return mat;
-    def is_signal:
+    def is_signal():
         return self.signal
