@@ -31,15 +31,15 @@ for i in range(len(ratios)):
     a.append([])
     for j in range(len(ratios)):
         x[i].append(CoreShellP(50, 20.0, 15.0, dens, dens, 1))
-        a[i].append(CoreShellSpec(x[i][j], cores[0][i][j], shells[0][i][j], False))
+        a[i].append(CoreShellSpec(x[i][j], cores[i][j], shells[i][j][0], False))
 # CoreShellP generates two 3D matrices of a sphere. One consisting of the core and one as the shell.
  # The density here can be seen as having the unit nm^-3 to make the values in the sphere matrix unitless.
 # 50x50 pixels, 20nm outer radius, 15nm core radius, densities, 1x1 nm pixel size.
 
 # CoreShellSpec fills the core and shell matrices from above with the simulated spectra and are then turned into
 # HyperSpy objects for the latter comparrisons. Combining these gives us a HyperSpy object of a whole particle (p).
-core=[] [y.core for y in a]
-shell=[] [y.shell for y in a]
+core=[] 
+shell=[]
 parts=[]
 for i in range(len(ratios)):
     core.append([])
@@ -48,25 +48,33 @@ for i in range(len(ratios)):
     for j in range(len(ratios)):
         core[i].append(a[i][j].core)
         shell[i].append(a[i][j].shell)
-        parts.append(a[i][j].getmatr())
+        parts[i].append(a[i][j].getmatr())
 # core=list(map(lambda x: hs.signals.Signal1D(x),core))
 # shell=list(map(lambda x: hs.signals.Signal1D(x),shell))
-parts = [y.getmatr() for y in a]
-plist= list(map(lambda x: hs.signals.Signal1D(x), [x.data for x in parts]));
-clist=list(map(lambda x: hs.signals.Signal1D(x), core))
-slist=list(map(lambda x: hs.signals.Signal1D(x), shell))
+#parts = [y.getmatr() for y in a]
+plist=[] ;
+clist=[]
+slist=[]
+for i in range(len(ratios)):
+    plist.append(list(map(lambda x: hs.signals.Signal1D(x), parts[i])))
+    clist.append(list(map(lambda x: hs.signals.Signal1D(x), core[i])))
+    slist.append(list(map(lambda x: hs.signals.Signal1D(x), shell[i])))
 # plist=parts
-for a in plist:
-    a.add_poissonian_noise()  # Adds poissonian noise to the existing spectra.
+for i in range(len(plist)):
+    for b in plist[i]:
+        b.add_poissonian_noise()  # Adds poissonian noise to the existing spectra.
 cal=hs.load("./Spectra/20nm cube Cu20Ag80.msa",
             signal_type="EDS_TEM")  # Kalibreringsdata
 # For nicer plots, HyperSpy needs some meta data:
-for a in plist:
-    a=setCalibration(a, cal)
+for i in range(len(plist)):
+    for b in plist[i]:
+        b=setCalibration(b, cal)
 # Make image
-imList=[y.get_lines_intensity() for y in plist]
-for im in imList:
-    redBlueMap(im)
+imList=[]
+for i in range(len(plist)):
+    imList.append([y.get_lines_intensity() for y in plist[i]])
+#for im in imList:
+    #redBlueMap(im)
 # %%Köra NMF + specAbsErr2D på alla bilder
 err=[]
 coreerr=[]
@@ -74,14 +82,19 @@ shellerr=[]
 dim=2
 NMFparts=[];
 for i in range(len(plist)):
-    # The "True" variable tells the function to normalize poissonian noise.
-    plist[i].decomposition(True, algorithm='NMF', output_dimension=dim)
-    factors=plist[i].get_decomposition_factors()
-    loadings=plist[i].get_decomposition_loadings()
-    NMFspec1=cLoadsFacs(loadings, factors)
-    NMFparticle1=NMFspec1.inav[0] + NMFspec1.inav[1]
-    orBlueMapCuAg(factors, loadings, 'NMF')
-    err.append(SpecErrAbs2D(NMFparticle1, plist[i]))
-    coreerr.append(SpecErrAbs2D(NMFspec1.inav[0], core[i]))
-    shellerr.append(SpecErrAbs2D(NMFspec1.inav[1], shell[i]))
-    NMFparts.append(NMFparticle1);
+    err.append([])
+    coreerr.append([])
+    shellerr.append([])
+    NMFparts.append([])
+    for j in range(len(plist[i])):
+        # The "True" variable tells the function to normalize poissonian noise.
+        plist[i][j].decomposition(True, algorithm='NMF', output_dimension=dim)
+        factors=plist[i][j].get_decomposition_factors()
+        loadings=plist[i][j].get_decomposition_loadings()
+        NMFspec1=cLoadsFacs(loadings, factors)
+        NMFparticle1=NMFspec1.inav[0] + NMFspec1.inav[1] 
+        #orBlueMapCuAg(factors, loadings, 'NMF')
+        err.append(SpecErrAbs2D(NMFparticle1, plist[i][j]))
+        coreerr.append(SpecErrAbs2D(NMFspec1.inav[0], core[i][j]))
+        shellerr.append(SpecErrAbs2D(NMFspec1.inav[1], shell[i][j]))
+        NMFparts[i].append(NMFparticle1);

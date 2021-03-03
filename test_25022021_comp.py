@@ -14,46 +14,43 @@ import numpy as np
 
 sAgPure = hs.load("./Spectra/20nm cube Cu0Ag100.msa", signal_type="EDS_TEM")
 sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa", signal_type="EDS_TEM")
-
+k=0.01*float(input("Enter core copper fraction (%):"))
 ratios = np.linspace(0, 1, 11);
-cores = np.zeros((11, 11, 2048));
-shells = np.zeros((11, 11, 2048))
+cores = np.zeros((11, 2048));
+shells = np.zeros((11, 2048))
 
 for i in range(len(ratios)):  # For some reason range(ratios) does not work
-    for j in range(len(ratios)):
-        cores[i][j][0:2048] = (1-ratios[i])*sCuPure.data+ratios[i]*sAgPure.data
-        shells[i][j][0:2048] = (1-ratios[j])*sAgPure.data+ratios[j]*sCuPure.data
+        cores[i][0:2048] = k*sCuPure.data+(1-k)*sAgPure.data
+        shells[i][0:2048] = (1-ratios[i])*sAgPure.data+ratios[i]*sCuPure.data
 x = [];
 a = [];
 dens = 20**-1
 for i in range(len(ratios)):
-    x.append([])
-    a.append([])
-    for j in range(len(ratios)):
-        x[i].append(CoreShellP(50, 20.0, 15.0, dens, dens, 1))
-        a[i].append(CoreShellSpec(x[i][j], cores[0][i][j], shells[0][i][j], False))
+        x.append(CoreShellP(50, 20.0, 15.0, dens, dens, 1))
+        a.append(CoreShellSpec(x[i], cores[i], shells[i], False))
 # CoreShellP generates two 3D matrices of a sphere. One consisting of the core and one as the shell.
  # The density here can be seen as having the unit nm^-3 to make the values in the sphere matrix unitless.
 # 50x50 pixels, 20nm outer radius, 15nm core radius, densities, 1x1 nm pixel size.
 
 # CoreShellSpec fills the core and shell matrices from above with the simulated spectra and are then turned into
 # HyperSpy objects for the latter comparrisons. Combining these gives us a HyperSpy object of a whole particle (p).
-core= [y.core for y in a]
-shell= [y.shell for y in a]
+core=[y.core for y in a]
+shell=[y.shell for y in a]
+
 # core=list(map(lambda x: hs.signals.Signal1D(x),core))
 # shell=list(map(lambda x: hs.signals.Signal1D(x),shell))
-parts = [y.getmatr() for y in a]
-plist= list(map(lambda x: hs.signals.Signal1D(x), [x.data for x in parts]));
+parts=[y.getmatr() for y in a];
+plist= list(map(lambda x: hs.signals.Signal1D(x), parts));
 clist=list(map(lambda x: hs.signals.Signal1D(x), core))
 slist=list(map(lambda x: hs.signals.Signal1D(x), shell))
 # plist=parts
-for a in plist:
-    a.add_poissonian_noise()  # Adds poissonian noise to the existing spectra.
+for q in plist:
+    q.add_poissonian_noise()  # Adds poissonian noise to the existing spectra.
 cal=hs.load("./Spectra/20nm cube Cu20Ag80.msa",
             signal_type="EDS_TEM")  # Kalibreringsdata
 # For nicer plots, HyperSpy needs some meta data:
-for a in plist:
-    a=setCalibration(a, cal)
+for b in plist:
+    b=setCalibration(b, cal)
 # Make image
 imList=[y.get_lines_intensity() for y in plist]
 for im in imList:
@@ -72,7 +69,8 @@ for i in range(len(plist)):
     NMFspec1=cLoadsFacs(loadings, factors)
     NMFparticle1=NMFspec1.inav[0] + NMFspec1.inav[1]
     orBlueMapCuAg(factors, loadings, 'NMF')
-    err.append(SpecErrAbs2D(NMFparticle1, plist[i]))
     coreerr.append(SpecErrAbs2D(NMFspec1.inav[0], core[i]))
     shellerr.append(SpecErrAbs2D(NMFspec1.inav[1], shell[i]))
+    err.append(SpecErrAbs2D(NMFparticle1, plist[i]))
+
     NMFparts.append(NMFparticle1);

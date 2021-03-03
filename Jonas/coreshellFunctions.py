@@ -17,30 +17,30 @@ def genfullparticle(size,r1,r2,specCore,specShell,signal=True,dens1=1,dens2=1,l=
     a = CoreShellP(size,r1,r2,dens1,dens2,l) 
     return CoreShellSpec(a,specCore,specShell,signal)
 
-def checkLoadFit(self,core,shell,statfac,statload,component=2):
+def checkLoadFit(core,shell,statfac,statload,components=2):
     
    '''Takes the core and shell of a core-shell particle (Hyperspy-signals) as well as \n
    the factors and loadings of a statistical method and returns the indices\n
    of the factor+loading combo that best correspond to core and shell respectively.
     '''
-   Statspec = cLoadsFacs(Statload, Statfac)
+   Statspec = cLoadsFacs(statload, statfac)
    statcoretest = []
    statshelltest = []
    statcore = 1000
    statshell = 1000
         
    for i in range(components):
-       statcoretest.append(SpecErrAbs2D(Statspec.inav[i], core))
-       statshelltest.append(SpecErrAbs2D(Statspec.inav[i], shell))
-       if statcoretest[i] < statcore:
-        statcore = statcoretest[i]
+       statcoretest=SpecErrAbs2D(Statspec.inav[i], core)
+       statshelltest=SpecErrAbs2D(Statspec.inav[i], shell)
+       if statcoretest < statcore:
+        statcore = statcoretest
         index_c = i
-        if statshelltest[i] < statshell:
-            statshell = statshelltest[i]
+       if statshelltest < statshell:
+            statshell = statshelltest
             index_s = i
-       if statcore == statshell:
+   if index_c == index_s:
            print('Warning! It guessed the same component for core and shell.')
-       return index_c,index_s #index för den som bäst passar core respektive shell
+   return index_c,index_s #index för den som bäst passar core respektive shell
 
 class postStatprocess:
     ''' Performs all the preprocessing that only requires the original\n
