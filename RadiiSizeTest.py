@@ -28,16 +28,17 @@ def addSpectrum(a,spec,specthickness):
     return specMat
 
 def match(rcPart, oc):
+    splitrcPart = rcPart.split()
     ret = []
-    result = np.zeros((len(rcPart.inav[:,0,0])))
-    for i in range(len(rcPart.inav[:,0,0])):
+    result = np.zeros((len(splitrcPart)))
+    for i in range(len(splitrcPart)):
         cName = 'Not defined'
         absErrBest = np.inf
         for j in range(len(oc)):
-            absErr = SpecErrAbs2D(rcPart.inav[i],oc[j])
+            absErr = SpecErrAbs2D(splitrcPart[i],oc[j])
             if (absErr < absErrBest):
                 absErrBest = absErr
-                if (absErrBest < 0.5):
+                if (absErrBest < 1):
                     cName = oc[j].metadata.General.title
         ret.append(cName)
         result[i] =absErrBest
@@ -45,7 +46,6 @@ def match(rcPart, oc):
     
 
 #%% Generate particles
-    6
 s = hs.load("./Spectra/MC simulation of  a 0.020 µm base, 0.020 µm high block*.msa",stack=True,signal_type="EDS_TEM")
 
 sCu = s.inav[-1]
@@ -53,16 +53,16 @@ sAg  = s.inav[0]
 sC = hs.load("./Spectra/Carbonbackground.msa",signal_type="EDS_TEM")
 
 size = 50
-sCore = (sCu*0.9 + sAg*0.1)/100
-sShell = (sCu*0.1 + sAg*+0.9)/100
-carbonMat = addSpectrum(np.ones((size,size)),sC,4)
+sCore = (sCu*0.9 + sAg*0.1)/10
+sShell = (sCu*0.1 + sAg*+0.9)/10
+carbonMat = addSpectrum(np.ones((size,size)),sC,1)
 background = hs.signals.Signal1D(carbonMat)
 background.metadata.General.title = 'Background'
 
 cs_mat = []
 oc_mat = []
 
-amount = range(1,20)
+amount = range(1,20,2)
 for x in amount:
     mat = CoreShellP(size,20.0,x,1,1,1)
     prct = CoreShellSpec(mat,sCore,sShell)
@@ -78,6 +78,7 @@ for x in amount:
     prct = prct.getmatr() + carbonMat
     cs_mat.append(hs.signals.Signal1D(prct))
     cs_mat[-1].metadata.General.title = 'r = %d' %(x)
+    cs_mat[-1].add_poissonian_noise(keep_dtype=True)
     
     
 #%% Evalutate particles
@@ -86,7 +87,7 @@ save = []
 result = np.empty((len(amount),decomp_dim))
 ret = []
 for i in range(len(cs_mat)):
-    cs_mat[i].decomposition(output_dimension = decomp_dim ,algorithm='NMF')
+    cs_mat[i].decomposition(output_dimension = decomp_dim ,algorithm='NMF',normalize_poissonian_noise=True)
     NMF_facs = cs_mat[i].get_decomposition_factors()
     NMF_loads = cs_mat[i].get_decomposition_loadings()
     save.append([NMF_facs,NMF_loads])
@@ -96,7 +97,34 @@ for i in range(len(cs_mat)):
     ret.append(allt[1])
 
 #%% PLots
-x = range(1,20)
+test = cs_mat[5]
+test.set_signal_type("EDS_TEM")
+test.get_calibration_from(sAg)
+test.add_elements(['Ag','Cu','C']) #Lägger in element igen tydligen förs de inte med 
+test.add_lines(['Ag_La','Cu_Ka','C_Ka'])
+im = test.get_lines_intensity()
+hs.plot.plot_images(im, tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
+    colorbar='single', vmin='1th', vmax='99th', scalebar='all',
+    scalebar_color='black', suptitle_fontsize=16,
+    padding={'top':0.8, 'bottom':0.10, 'left':0.05,
+             'right':0.85, 'wspace':0.20, 'hspace':0.10})
+
+
+avgcounts = test.inav[:,:].data.sum()/(test.data.shape[0]*test.data.shape[1])
+print("Medelantal counts: "+str(avgcounts))
+    
+l = []
+for d in save:
+    temp = d[1].split()
+    l += temp
+    
+hs.plot.plot_images(l, cmap='mpl_colors',
+            axes_decor='off', per_row=3,
+            scalebar=[0], scalebar_color='white',
+            padding={'top': 0.95, 'bottom': 0.05,
+                     'left': 0.05, 'right':0.78})
+
+x = range(1,20,2)
 fig, axs = plt.subplots(3, sharex=True, sharey=True)
 axs[0].plot(x,result[:,0])
 axs[0].legend(['Loading 0'])
@@ -122,12 +150,12 @@ for i in range(len(ret)):
         if ret[i][j] == 'Core':
             coreFacs.append(save[i][0].inav[j])
             absErr.append(round(result[i,j],2)*100)
-            lText.append(str(i)+' AbsErr = '+str(absErr))
+            lText.append(str(i)+' AbsErr = '+str(absErr[-1]))
             x2.append(i)
         elif ret[i][j] == 'Shell':
             shellFacs.append(save[i][0].inav[j])
             absErrshell.append(round(result[i,j],2)*100)
-            lText.append(str(i)+' AbsErr = '+str(absErrshell))
+            sText.append(str(i)+' AbsErr = '+str(absErrshell[-1]))
             x3.append(i)
 
 kfacs = [1,0.72980399]
@@ -160,6 +188,15 @@ fig.title ='Core factors'
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 ax.legend(lText,loc='center left', bbox_to_anchor=(1, 0.5))
+
+
+fig = plt.figure()
+ax = plt.subplot(111)
+hs.plot.plot_spectra(sF,style='cascade',padding=-1,fig=fig,ax=ax) 
+fig.title ='Shell factors'
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+ax.legend(sText,loc='center left', bbox_to_anchor=(1, 0.5))
 
 
 x2 = np.array(x2)

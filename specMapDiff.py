@@ -83,7 +83,7 @@ def cLoadsFacs(loads,facs):
     
     
     combined = hs.signals.BaseSignal(combinedMat)
-    combined=combined.transpose(signal_axes=[0],navigation_axes=[3, 2, 1])
+    combined=combined.transpose(signal_axes=[0],navigation_axes=[1,2,3])
     return combined
 
 def varimax(Phi , gamma = 1.0 , q = 100  , tol = 1e-10):
