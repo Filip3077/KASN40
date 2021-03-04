@@ -146,7 +146,7 @@ def FullVarimax(factors,loadings,components=-1):
     factors_temp.data = factors_selected_rot # this way factors is kept as hs objekt.
     #Fold the loadings matrix to original format.
     loadings_unfold.data = loadings_selected_rot
-    loadings_fold = loadings_unfold.fold()
+    loadings_unfold.fold()
     
-    return factors_temp, loadings_fold
+    return factors_temp, loadings_unfold
         

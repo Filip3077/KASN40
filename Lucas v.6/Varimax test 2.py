@@ -5,10 +5,10 @@ Created on Wed Mar  3 09:17:23 2021
 @author: Lucas
 """
 
-from varimax import varimax
+# from varimax import varimax
 import matplotlib.pyplot as plt
 import hyperspy.api as hs
-from coreshellfunctions import *
+from coreshellFunctions import *
 from specMapDiff import *
 import numpy as np
 from numpy import linalg
@@ -68,31 +68,33 @@ hs.plot.plot_images(p_loadings.inav[0:nfac],suptitle='SVD Loadings', cmap='mpl_c
 p_factors_selected = p_factors.inav[0:nfac]
 p_loadings_selected = p_loadings.inav[0:nfac]
 
-#Unfold för att göra er 2+1D matris till 1+1D som varimax vill ha.
-p_loadings_unfold = p_loadings_selected.deepcopy()
-p_loadings_unfold.unfold()
+[p_factors_selected_rot, p_loadings_unfold] = FullVarimax(p_factors_selected, p_loadings_selected,nfac)
 
-p_factors_selected = p_factors_selected.data
-p_loadings_selected = p_loadings_unfold.data
+# #Unfold för att göra er 2+1D matris till 1+1D som varimax vill ha.
+# p_loadings_unfold = p_loadings_selected.deepcopy()
+# p_loadings_unfold.unfold()
 
-R =varimax(p_loadings_selected.T)
+# p_factors_selected = p_factors_selected.data
+# p_loadings_selected = p_loadings_unfold.data
 
-p_loadings_selected_rot = np.matmul(p_loadings_selected.T, R).T
-p_factors_selected_rot = np.matmul(linalg.inv(R), p_factors_selected)
+# R =varimax(p_loadings_selected.T)
 
-#Ibland blir faktorer och loadings negativa. Då är det bara att manuellt flippa dem.
-for i in range(nfac):
-    if p_factors_selected_rot[i,:].sum() < 0:
-        p_factors_selected_rot[i,:] = -p_factors_selected_rot[i,:]
-    if p_loadings_selected_rot[i,:].sum() < 0:
-        p_loadings_selected_rot[i,:] = -p_loadings_selected_rot[i,:]
+# p_loadings_selected_rot = np.matmul(p_loadings_selected.T, R).T
+# p_factors_selected_rot = np.matmul(linalg.inv(R), p_factors_selected)
 
-#"Vik ihop" matrisen till ursprungligt format, fast nu roterad
-p_loadings_unfold.data = p_loadings_selected_rot
-p_loadings_unfold.fold()
+# #Ibland blir faktorer och loadings negativa. Då är det bara att manuellt flippa dem.
+# for i in range(nfac):
+#     if p_factors_selected_rot[i,:].sum() < 0:
+#         p_factors_selected_rot[i,:] = -p_factors_selected_rot[i,:]
+#     if p_loadings_selected_rot[i,:].sum() < 0:
+#         p_loadings_selected_rot[i,:] = -p_loadings_selected_rot[i,:]
+
+# #"Vik ihop" matrisen till ursprungligt format, fast nu roterad
+# p_loadings_unfold.data = p_loadings_selected_rot
+# p_loadings_unfold.fold()
 
 #%% 
-maxint = np.max(p_factors_selected_rot[0:nfac,:])*1.1
+maxint = np.max(p_factors_selected_rot.inav[0:nfac])*1.1
 
 keV = np.arange(-0.2, 20.28, 0.01) 
 # fig1, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(20, 6))
@@ -114,12 +116,12 @@ ax4.imshow(p_loadings_unfold.inav[1].data, cmap=plt.get_cmap('viridis'), vmin=-2
 
 #%% Our regular plots
 
-p_fac_rot = hs.signals.Signal1D(p_factors_selected_rot)
-p_fac_rot = setCalibration(p_fac_rot, cal)
-p_load_rot = hs.signals.BaseSignal(p_loadings_unfold)
-ploadrot = p_load_rot.transpose(signal_axes=2)
+# p_fac_rot = hs.signals.Signal1D(p_factors_selected_rot)
+# p_fac_rot = setCalibration(p_fac_rot, cal)
+# p_load_rot = hs.signals.BaseSignal(p_loadings_unfold)
+# ploadrot = p_load_rot.transpose(signal_axes=2)
 
-hs.plot.plot_spectra(p_fac_rot.isig[0.0:10000.0],style='cascade')
+hs.plot.plot_spectra(p_factors_selected_rot.isig[0.0:10000.0],style='cascade')
 plt.title('Varimax Factors')
 plt.text(x=8040, y=0.8, s='Cu-K$_\\alpha$', color='k')
 plt.axvline(8040, c='k', ls=':', lw=0.5)
@@ -128,7 +130,7 @@ plt.axvline(930, c='k', ls=':', lw=0.5)
 plt.axvline(2984, c='k', ls=':', lw=0.5)
 plt.text(x=2984, y=0.8, s='Ag-L$_\\alpha$', color='k')
 
-hs.plot.plot_images(ploadrot,suptitle='Varimax Loadings', cmap='mpl_colors',
+hs.plot.plot_images(p_loadings_unfold,suptitle='Varimax Loadings', cmap='mpl_colors',
                     axes_decor='off', per_row=3,
                     scalebar=[0], scalebar_color='white',
                     padding={'top': 0.95, 'bottom': 0.05,
