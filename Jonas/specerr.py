@@ -56,3 +56,8 @@ def SpecErrAbs2D(map1,relMap):
     #     for j in range(k1):
     #         store[i][j]=SpecErrAbs(spec1[i][j],spec2[i][j])*np.sum(spec1[i][j])
     # return np.sum(store)/np.sum(spec1)
+
+def SpecErrNEuc(map1, relMap):
+    diffmap=(map1-relMap)**2;
+    reldif=diffmap.data.sum()/relMap.data.sum()
+    return reldif;

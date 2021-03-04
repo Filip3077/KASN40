@@ -87,6 +87,15 @@ class CoreShellSpec:
          return self.core+self.shell
      def is_signal(self):
          return self.signal;
+     def add_background(self,backspec, thickness):
+         for i in range(self.base.size):
+             for j in range(self.base.size):
+                 if self.signal:
+                     self.core.data[i][j]+=backspec.data*thickness;
+                 else:
+                     self.core[i][j]+=backspec.data*thickness;
+           
+
          
 class CoreShellBack:
     def __init__(self,a,spec,dens,signal=True):
