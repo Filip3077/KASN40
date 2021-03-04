@@ -18,7 +18,7 @@ from coreshellp import CoreShellP, CoreShellSpec
 from specerr import *
 from specMapDiff import *
 import numpy as np
-from coreshellFunctions import checkLoadFit
+from coreshellFunctions import *
 sAgPure = hs.load("./Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
 sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
@@ -81,7 +81,7 @@ for i in range(len(plist)):
     factors = plist[i].get_decomposition_factors() 
     loadings =plist[i].get_decomposition_loadings()
     #c,s=0,1;
-    c,s=checkLoadFit(clist[i],slist[i],factors,loadings, dim,'abs')
+    c,s=checkLoadOnly(bcore[i],bshell[i],loadings, dim,'abs')
     cchoice.append(c);
     schoice.append(s);
     NMFspec1 = cLoadsFacs(loadings, factors)
