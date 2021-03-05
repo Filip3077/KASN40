@@ -78,6 +78,8 @@ for x in amount:
     prct = prct.getmatr() + carbonMat
     cs_mat.append(hs.signals.Signal1D(prct))
     cs_mat[-1].metadata.General.title = 'r = %d' %(x)
+
+
     
     
 #%% Evalutate particles

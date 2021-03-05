@@ -23,6 +23,7 @@ import numpy as np
 from coreshellFunctions import checkLoadFit
 sAgPure = hs.load("./Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
+sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")#10 nm film
 corrat=np.linspace(0,1,11);
 ratios=np.linspace(0,1,11);
 errt=[];
@@ -31,6 +32,9 @@ serrt=[];
 kfacs = [1,0.72980399]
 coreCQ=[];
 shellCQ=[];
+dens = 20**-1
+thickness=5
+dim=3
 for k in corrat:
     cores=np.zeros((1,11,2048));
     shells=np.zeros((1,11,2048))
@@ -40,10 +44,11 @@ for k in corrat:
         shells[0][i]=(1-ratios[i])*sAgPure.data+ratios[i]*sCuPure.data
     x=[];
     a=[];
-    dens = 20**-1
+    
     for i in range(len(ratios)):
         x.append(CoreShellP(50,20.0,15.0,dens,dens,1))
         a.append(CoreShellSpec(x[i],cores[0][i],shells[0][i],True))
+        a[i].add_background(sCBack, thickness)
 # CoreShellP generates two 3D matrices of a sphere. One consisting of the core and one as the shell. 
  # The density here can be seen as having the unit nm^-3 to make the values in the sphere matrix unitless.
 # 50x50 pixels, 20nm outer radius, 15nm core radius, densities, 1x1 nm pixel size.
@@ -74,14 +79,14 @@ for k in corrat:
     err=[]
     coreerr=[]
     shellerr=[]
-    dim=2
     #Dessa behövs för kvantifiering senare:
     cFac=[];
     sFac=[];
     for i in range(len(plist)):
         plist[i].decomposition(True,algorithm='NMF',output_dimension =dim) # The "True" variable tells the function to normalize poissonian noise.
-        factors = plist[i].get_decomposition_factors() 
-        loadings =plist[i].get_decomposition_loadings()
+        plist[i].blind_source_separation(number_of_components=dim)
+        factors = plist[i].get_bss_factors() 
+        loadings =plist[i].get_bss_loadings()
         c,s=checkLoadFit(core[i],shell[i],factors,loadings, dim)
         cFac.append(factors.inav[c])
         sFac.append(factors.inav[s])

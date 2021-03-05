@@ -37,7 +37,7 @@ x=[];
 a=[];
 for i in range(len(ratios)):
     x.append(CoreShellP(50,20.0,15.0,dens,dens,1))
-    a.append(CoreShellSpec(x[i],cores[0][i],shells[0][i],True))
+    a.append(CoreShellSpec(x[i],cores[0][i],shells[0][i],False))
     a[i].add_background(sCBack,thickness)
 # CoreShellP generates two 3D matrices of a sphere. One consisting of the core and one as the shell. 
  # The density here can be seen as having the unit nm^-3 to make the values in the sphere matrix unitless.
@@ -75,11 +75,12 @@ cchoice=[];
 schoice=[];
 kfacs = [1,0.72980399]
 for i in range(len(plist)):
-    plist[i].decomposition(True,algorithm='NMF',output_dimension =dim) # The "True" variable tells the function to normalize poissonian noise.
-    factors = plist[i].get_decomposition_factors() 
-    loadings =plist[i].get_decomposition_loadings()
+    plist[i].decomposition(True,algorithm='sklearn_pca',output_dimension=dim) # The "True" variable tells the function to normalize poissonian noise.
+    plist[i].blind_source_separation(number_of_components=dim);
+    factors = plist[i].get_bss_factors() 
+    loadings =plist[i].get_bss_loadings()
     #c,s=0,1;
-    c,s=checkLoadFit(core[i],shell[i],factors,loadings, dim)
+    c,s=checkLoadFit(clist[i],slist[i],factors,loadings, dim,'abs')
     cchoice.append(c);
     schoice.append(s);
     NMFspec1 = cLoadsFacs(loadings, factors)
@@ -87,9 +88,9 @@ for i in range(len(plist)):
     sFac.append(factors.inav[s]);
     NMFparticle1 = NMFspec1.inav[0] + NMFspec1.inav[1]
     orBlueMapCuAg(factors,loadings,'NMF')
-    err.append(SpecErrAbs2D(NMFparticle1,plist[i]))
-    coreerr.append(SpecErrAbs2D(NMFspec1.inav[c],core[i]))
-    shellerr.append(SpecErrAbs2D(NMFspec1.inav[s],shell[i]))
+    err.append(SpecErrAbs2D(NMFparticle1,plist[i]));
+    coreerr.append(SpecErrAbs2D(NMFspec1.inav[c],clist[i]));
+    shellerr.append(SpecErrAbs2D(NMFspec1.inav[s],slist[i]));
     NMFparts.append(NMFparticle1);
     
 #%%Kvantifiera
