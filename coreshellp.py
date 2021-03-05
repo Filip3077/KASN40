@@ -81,12 +81,22 @@ class CoreShellSpec:
              self.shell=shell;
          self.full=self.core+self.shell   
          self.base=a;
+         self
      def getmatr(self):
          '''Returns the matrix representing the entire core-shell particle'''
          return self.core+self.shell
      def is_signal(self):
          return self.signal;
+     def add_background(self,backspec, thickness):
+         for i in range(self.base.size):
+             for j in range(self.base.size):
+                 if self.signal:
+                     self.core.data[i][j]+=backspec.data*thickness;
+                 else:
+                     self.core[i][j]+=backspec.data*thickness;
+           
 
+         
 class CoreShellBack:
     def __init__(self,a,spec,dens,signal=True):
         self.signal=signal;
@@ -106,7 +116,6 @@ class CoreShellBack:
         self.base=a.base;
         self.back=mat
         
-
     def get_backg(self):
         return self.back;
     def is_signal(self):
