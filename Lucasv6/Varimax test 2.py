@@ -8,22 +8,37 @@ Created on Wed Mar  3 09:17:23 2021
 # from varimax import varimax
 import matplotlib.pyplot as plt
 import hyperspy.api as hs
-from coreshellFunctions import *
-from specMapDiff import *
+from coreshellfunctions import *
 import numpy as np
 from numpy import linalg
+
+def addSpectrum(a,spec,specthickness):
+    L = len(spec.data)
+    mat = np.zeros((len(a),len(a[0]),L))
+
+    for i in range(0,len(a)):
+        for j in range(0,len(a[0])):
+            mat[i,j,0:L]=(a[i,j]/specthickness)*spec.data
+            
+    specMat = hs.signals.Signal1D(mat)
+    specMat.set_signal_type("EDS_TEM")
+    specMat.get_calibration_from(spec)
+    return specMat
 
 #%% Particle Generation
 sAgPure = hs.load("../Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("../Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
 
-sAg = 0.8*sAgPure.data + 0.2*sCuPure.data
+sAg = 0.9*sAgPure.data + 0.1*sCuPure.data
 sCu = 0.9*sCuPure.data + 0.1*sAgPure.data
-
+sC = hs.load("../Spectra/Carbonbackground.msa",signal_type="EDS_TEM")
+carbonMat = addSpectrum(np.ones((50,50)),sC,4)
+background = hs.signals.Signal1D(carbonMat)
+background.metadata.General.title = 'Background'
 
 a = genfullparticle(50,20,15,sCu,sAg)
 
-p = a.full
+p = a.full + background
 p.add_poissonian_noise()
 
 cal = hs.load("../Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")
@@ -38,11 +53,11 @@ p.plot_explained_variance_ratio(n=20, vline=True)
 
 nfac = 2 
 
-sc1 = p.get_decomposition_model(nfac)
-res1 = (p - sc1)
+# sc1 = p.get_decomposition_model(nfac)
+# res1 = (p - sc1)
 
-res_map=res1.sum(-1).data[0,:]
-res_spec=res1.sum([0,1]).data
+# res_map=res1.sum(-1).data[0,:]
+# res_spec=res1.sum([0,1]).data
 
 p_factors = p.get_decomposition_factors()
 p_loadings = p.get_decomposition_loadings()
@@ -93,26 +108,40 @@ p_loadings_selected = p_loadings.inav[0:nfac]
 # p_loadings_unfold.data = p_loadings_selected_rot
 # p_loadings_unfold.fold()
 
-#%% 
-maxint = np.max(p_factors_selected_rot.inav[0:nfac])*1.1
+#%% En sorts plottar
 
-keV = np.arange(-0.2, 20.28, 0.01) 
-# fig1, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(20, 6))
+keV = np.arange(-0.2,20.28,0.01)
+
 fig1, ax1 = plt.subplots()
-
-ax1.plot(keV, p_factors_selected_rot[0,:], label='C1')
-ax1.plot(keV, p_factors_selected_rot[1,:], label='C2')
-# ax1.plot(keV, p_factors_selected_rot[2,:], label='C3')
-# ax1.plot(keV, p_factors_selected_rot[3,:], label='C4')
-#ax1.plot(keV, p_factors_selected_rot[4,:], label='C5')
-ax1.axis([-0.2,20.28,-0.5, maxint])
-ax1.legend()
+for i in range(nfac):
+    ax1.plot(keV,p_factors_selected_rot.inav[i].data,label=('C'+str(i+1)))
+    ax1.legend()
 plt.title('Rotated factors')
 
-fig2, (ax3, ax4) = plt.subplots(nrows=1, ncols=2, figsize=(20, 4))
-ax3.imshow(p_loadings_unfold.inav[0].data, cmap=plt.get_cmap('viridis'), vmin=-2, vmax=7)
-ax4.imshow(p_loadings_unfold.inav[1].data, cmap=plt.get_cmap('viridis'), vmin=-2, vmax=7)
-# ax5.imshow(p_loadings_unfold.inav[2].data, cmap=plt.get_cmap('viridis'), vmin=-2, vmax=7)
+fig2, tup = plt.subplots(nrows=1,ncols=nfac, figsize=(20,4))
+for i in range(nfac):
+    tup[i].imshow(p_loadings_unfold.inav[i].data, cmap=plt.get_cmap('viridis'),vmin=-2,vmax=7)
+    
+# # maxint = np.max(p_factors_selected_rot.inav[0:nfac])*1.1
+# # minint = np.min(p_factors_selected_rot.inav[0:nfac])*1.1
+
+# keV = np.arange(-0.2, 20.28, 0.01) 
+# # fig1, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(20, 6))
+# fig1, ax1 = plt.subplots()
+
+# ax1.plot(keV, p_factors_selected_rot.inav[0].data, label='C1')
+# ax1.plot(keV, p_factors_selected_rot.inav[1].data, label='C2')
+# # ax1.plot(keV, p_factors_selected_rot.inav[2].data, label='C3')
+# # ax1.plot(keV, p_factors_selected_rot[3,:], label='C4')
+# #ax1.plot(keV, p_factors_selected_rot[4,:], label='C5')
+# # ax1.axis([-0.2,20.28,minint, maxint])
+# ax1.legend()
+# plt.title('Rotated factors')
+
+# fig2, (ax3, ax4) = plt.subplots(nrows=1, ncols=2, figsize=(20, 4))
+# ax3.imshow(p_loadings_unfold.inav[0].data, cmap=plt.get_cmap('viridis'), vmin=-2, vmax=7)
+# ax4.imshow(p_loadings_unfold.inav[1].data, cmap=plt.get_cmap('viridis'), vmin=-2, vmax=7)
+# # ax5.imshow(p_loadings_unfold.inav[2].data, cmap=plt.get_cmap('viridis'), vmin=-2, vmax=7)
 
 #%% Our regular plots
 
@@ -135,4 +164,7 @@ hs.plot.plot_images(p_loadings_unfold,suptitle='Varimax Loadings', cmap='mpl_col
                     scalebar=[0], scalebar_color='white',
                     padding={'top': 0.95, 'bottom': 0.05,
                               'left': 0.05, 'right':0.78})
+
+reConst = cLoadsFacs(p_loadings_unfold, p_factors_selected_rot)
+
 

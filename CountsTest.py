@@ -69,7 +69,7 @@ shell = hs.signals.Signal1D(prct.shell)
 shell.metadata.General.title = 'Shell'
 oc = [core,shell,background]
 
-prct = prct.getmatr() #+ carbonMat
+prct = prct.getmatr() + carbonMat
 base = hs.signals.Signal1D(prct)
 base.add_poissonian_noise(keep_dtype=True)
 
