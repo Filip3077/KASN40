@@ -23,6 +23,7 @@ import numpy as np
 from coreshellFunctions import checkLoadFit
 sAgPure = hs.load("./Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
+sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
 corrat=np.linspace(0,1,11);
 ratios=np.linspace(0,1,11);
 errt=[];
@@ -31,16 +32,19 @@ serrt=[];
 kfacs = [1,0.72980399]
 coreCQ=[];
 shellCQ=[];
+dens = 20**-1
+thickness=0/dens
+dim=2
 for k in corrat:
     cores=np.zeros((1,11,2048));
     shells=np.zeros((1,11,2048))
     
     for i in range(len(ratios)):
-        cores[0][i]=k*sCuPure.data+(1-k)*sAgPure.data
-        shells[0][i]=(1-ratios[i])*sAgPure.data+ratios[i]*sCuPure.data
+        cores[0][i]=k*sCuPure.data+(1-k)*sAgPure.data+thickness*sCBack.data
+        shells[0][i]=(1-ratios[i])*sAgPure.data+ratios[i]*sCuPure.data+thickness*sCBack.data
     x=[];
     a=[];
-    dens = 20**-1
+    
     for i in range(len(ratios)):
         x.append(CoreShellP(50,20.0,15.0,dens,dens,1))
         a.append(CoreShellSpec(x[i],cores[0][i],shells[0][i],True))
@@ -74,7 +78,6 @@ for k in corrat:
     err=[]
     coreerr=[]
     shellerr=[]
-    dim=2
     #Dessa behövs för kvantifiering senare:
     cFac=[];
     sFac=[];

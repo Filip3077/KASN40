@@ -18,7 +18,7 @@ from coreshellp import CoreShellP, CoreShellSpec
 from specerr import *
 from specMapDiff import *
 import numpy as np
-from coreshellFunctions import checkLoadFit
+from coreshellFunctions import *
 sAgPure = hs.load("./Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
 sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
@@ -37,7 +37,7 @@ x=[];
 a=[];
 for i in range(len(ratios)):
     x.append(CoreShellP(50,20.0,15.0,dens,dens,1))
-    a.append(CoreShellSpec(x[i],cores[0][i],shells[0][i],True))
+    a.append(CoreShellSpec(x[i],cores[0][i],shells[0][i],False))
     a[i].add_background(sCBack,thickness)
 # CoreShellP generates two 3D matrices of a sphere. One consisting of the core and one as the shell. 
  # The density here can be seen as having the unit nm^-3 to make the values in the sphere matrix unitless.
@@ -47,6 +47,8 @@ for i in range(len(ratios)):
 # HyperSpy objects for the latter comparrisons. Combining these gives us a HyperSpy object of a whole particle (p). 
 core = [y.core for y in a]
 shell = [y.shell for y in a]
+bcore=[y.base.core for y in a]
+bshell=[y.base.shell for y in a]
 #core=list(map(lambda x: hs.signals.Signal1D(x),core))
 #shell=list(map(lambda x: hs.signals.Signal1D(x),shell))
 parts=[y.getmatr() for y in a]
@@ -79,7 +81,7 @@ for i in range(len(plist)):
     factors = plist[i].get_decomposition_factors() 
     loadings =plist[i].get_decomposition_loadings()
     #c,s=0,1;
-    c,s=checkLoadFit(core[i],shell[i],factors,loadings, dim)
+    c,s=checkLoadOnly(bcore[i],bshell[i],loadings, dim,'abs')
     cchoice.append(c);
     schoice.append(s);
     NMFspec1 = cLoadsFacs(loadings, factors)
@@ -87,9 +89,9 @@ for i in range(len(plist)):
     sFac.append(factors.inav[s]);
     NMFparticle1 = NMFspec1.inav[0] + NMFspec1.inav[1]
     orBlueMapCuAg(factors,loadings,'NMF')
-    err.append(SpecErrAbs2D(NMFparticle1,plist[i]))
-    coreerr.append(SpecErrAbs2D(NMFspec1.inav[c],core[i]))
-    shellerr.append(SpecErrAbs2D(NMFspec1.inav[s],shell[i]))
+    err.append(SpecErrAbs2D(NMFparticle1,plist[i]));
+    coreerr.append(SpecErrAbs2D(NMFspec1.inav[c],clist[i]));
+    shellerr.append(SpecErrAbs2D(NMFspec1.inav[s],slist[i]));
     NMFparts.append(NMFparticle1);
     
 #%%Kvantifiera
