@@ -76,8 +76,8 @@ sAg  = s.inav[0]
 sC = hs.load("./Spectra/Carbonbackground.msa",signal_type="EDS_TEM")
 
 size = 100
-sCore = (sCu*0.9 + sAg*0.1)/10
-sShell = (sCu*0.1 + sAg*+0.9)/10
+sCore = (sCu*0.9 + sAg*0.1)/12
+sShell = (sCu*0.1 + sAg*+0.9)/12
 carbonMat = addSpectrum(np.ones((size,size)),sC,1)
 background = hs.signals.Signal1D(carbonMat)
 background.metadata.General.title = 'Background'
@@ -137,11 +137,12 @@ save = []
 result = np.empty((len(cs_mat),len(cs_mat[0]),decomp_dim))
 ret = []
 
-for s in range(len(cs_mat)):
+for s in range(len(cs_mat)+1):
     for c in range(len(cs_mat[s])):
         cs_mat[s][c].decomposition(output_dimension = decomp_dim ,algorithm='NMF',normalize_poissonian_noise=True)
-        NMF_facs = cs_mat[s][c].get_decomposition_factors()
-        NMF_loads = cs_mat[s][c].get_decomposition_loadings()
+        cs_mat[s][c].blind_source_separation(number_of_components=decomp_dim)
+        NMF_facs = cs_mat[s][c].get_bss_factors()
+        NMF_loads = cs_mat[s][c].get_bss_loadings()
         save.append([NMF_facs,NMF_loads])
         reConst = cLoadsFacs(NMF_loads,NMF_facs)
         allt = match(reConst,oc_mat[s][c])
@@ -171,7 +172,7 @@ plt.figure()
 ax2 = plt.contour(K,I,result[:,:,2])
 ax2.title = 'Loading 2'
 cbar = plt.colorbar(ax2)      
-        
+
 l = []
 for s in save:
     l.append(s[1])
