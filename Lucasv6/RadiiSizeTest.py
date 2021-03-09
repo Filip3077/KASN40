@@ -13,6 +13,7 @@ from coreshellp import *
 from specerr import SpecErrAbs2D
 from specMapDiff import cLoadsFacs
 import matplotlib.pyplot as plt
+from coreshellfunctions import setCalibration
 
 def addSpectrum(a,spec,specthickness):
     L = len(spec.data)
@@ -68,16 +69,27 @@ def checkLoadFit(core,shell,statfac,statload,components=2):
            print('Warning! It guessed the same component for core and shell.')
    return index_c,index_s #index för den som bäst passar core respektive shell
 
-#%% Generate particles
-s = hs.load("./Spectra/MC simulation of  a 0.020 µm base, 0.020 µm high block*.msa",stack=True,signal_type="EDS_TEM")
+def quantify(factors, kfac, calSpec):
+    ''' Quantifies the elements in the core or shell using choosen k-factors. '''
+    # factors = setCalibration(factors, calSpec)
 
-sCu = s.inav[-1]
-sAg  = s.inav[0]
-sC = hs.load("./Spectra/Carbonbackground.msa",signal_type="EDS_TEM")
+    bw = factors.estimate_background_windows(line_width=[5.0, 7.0])
+    intensities = factors.get_lines_intensity(background_windows=bw)
+    wtCu = factors.quantification(intensities, method='CL', factors=kfac,composition_units='weight')[1].data
+    wtAg = factors.quantification(intensities, method='CL', factors=kfac,composition_units='weight')[0].data
+    return wtCu, wtAg
+
+#%% Generate particles
+s = hs.load("../Spectra/MC simulation of  a 0.020 µm base, 0.020 µm high block*.msa",stack=True,signal_type="EDS_TEM")
+
+sCu = s.inav[-1].isig[1000.0:10000.0]
+sAg  = s.inav[0].isig[1000.0:10000.0]
+sC = hs.load("../Spectra/Carbonbackground.msa",signal_type="EDS_TEM")
+sC = sC.isig[1000.0:10000.0]
 
 size = 100
-sCore = (sCu*0.9 + sAg*0.1)/12
-sShell = (sCu*0.1 + sAg*+0.9)/12
+sCore = (sCu*0.9 + sAg*0.1)/10
+sShell = (sCu*0.1 + sAg*+0.9)/10
 carbonMat = addSpectrum(np.ones((size,size)),sC,1)
 background = hs.signals.Signal1D(carbonMat)
 background.metadata.General.title = 'Background'
@@ -91,12 +103,14 @@ oc_mat = []
 
 
 for s in outer:
+    psize = int(s*2.5)
     inner = np.linspace(s/InnerIncrement,s,InnerIncrement)
     innerList = []
     innerOC = []
     for c in inner:
-        mat = CoreShellP(size,s,c,1,1,1)
+        mat = CoreShellP(psize,s,c,1,1,1)
         prct = CoreShellSpec(mat,sCore,sShell)
+        prct.add_background(sC,1)
         core = hs.signals.Signal1D(prct.core)
         core.metadata.General.title = 'Core [S:%d C:%d]' %(s,c)
         
@@ -104,10 +118,11 @@ for s in outer:
         shell.metadata.General.title = 'Shell[S:%d C:%d]' %(s,c)
         innerOC.append([core,shell])
         
-        prct = prct.getmatr() + carbonMat
+        prct = prct.getmatr()
         innerList.append(hs.signals.Signal1D(prct))
         innerList[-1].metadata.General.title = 'radii = %d , %d' %(s,c)
         innerList[-1].add_poissonian_noise(keep_dtype=True)
+        innerList[-1] = setCalibration(innerList[-1], sAg)
         
     oc_mat.append(innerOC)
     cs_mat.append(innerList)
@@ -132,7 +147,7 @@ for s in outer:
 #    
     
 #%% Evalutate particles
-decomp_dim = 3
+decomp_dim = 2
 save = []
 result = np.empty((len(cs_mat),len(cs_mat[0]),decomp_dim))
 ret = []
@@ -140,9 +155,12 @@ ret = []
 for s in range(len(cs_mat)+1):
     for c in range(len(cs_mat[s])):
         cs_mat[s][c].decomposition(output_dimension = decomp_dim ,algorithm='NMF',normalize_poissonian_noise=True)
-        cs_mat[s][c].blind_source_separation(number_of_components=decomp_dim)
-        NMF_facs = cs_mat[s][c].get_bss_factors()
-        NMF_loads = cs_mat[s][c].get_bss_loadings()
+        # cs_mat[s][c].decomposition(True)
+        # facs = cs_mat[s][c].get_decomposition_factors().inav[0:decomp_dim]
+        # loads = cs_mat[s][c].get_decomposition_loadings().inav[0:decomp_dim]
+        # facs_rot, loads_rot = FullVarimax(facs, loads, decomp_dim)
+        NMF_facs = cs_mat[s][c].get_decomposition_factors()
+        NMF_loads = cs_mat[s][c].get_decomposition_loadings()
         save.append([NMF_facs,NMF_loads])
         reConst = cLoadsFacs(NMF_loads,NMF_facs)
         allt = match(reConst,oc_mat[s][c])
@@ -168,11 +186,11 @@ ax1 = plt.contour(K,I,result[:,:,1])
 ax1.title = 'Loading 1'
 cbar = plt.colorbar(ax1)      
 
-plt.figure()
-ax2 = plt.contour(K,I,result[:,:,2])
-ax2.title = 'Loading 2'
-cbar = plt.colorbar(ax2)      
-
+# plt.figure()
+# ax2 = plt.contour(K,I,result[:,:,2])
+# ax2.title = 'Loading 2'
+# cbar = plt.colorbar(ax2)      
+        
 l = []
 for s in save:
     l.append(s[1])
@@ -180,14 +198,23 @@ for s in save:
 for x in range(5,50,5):
     r = l[x-5:x]
     hs.plot.plot_images(r, cmap='mpl_colors',
-            axes_decor='off', per_row=3,
+            axes_decor='off', per_row=2,
             scalebar=[0], scalebar_color='white',
             padding={'top': 0.95, 'bottom': 0.05,
                      'left': 0.05, 'right':0.78})
-        
-        
-        
-        
+    
+#%% 
+
+factors47 = save[47][0].inav[0:3]
+
+setCalibration(factors47, sAg)
+factors47.set_lines(['Ag_La','Cu_Ka'])
+wtCu, wtAg = quantify(factors47,[1, 0.72980399],sAg)
+
+
+
+
+
         
         
         
