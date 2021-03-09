@@ -15,10 +15,7 @@ s = hs.load("../Spectra/MC simulation of  a 0.020 µm base, 0.020 µm high block
 sCu = s.inav[-1]
 sAg  = s.inav[0]
 sC = hs.load("../Spectra/Carbonbackground.msa",signal_type="EDS_TEM")
-'''
 
-
-'''
 size = 200
 cs_mat = CoreShellP(size,30.0e-9,20.0e-9,1,1,1e-9)
 
