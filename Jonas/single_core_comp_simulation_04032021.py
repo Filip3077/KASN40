@@ -22,13 +22,18 @@ from coreshellFunctions import checkLoadFit
 sAgPure = hs.load("./Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
 sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
+#cal = hs.load("./Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")
+#sAgPure=setCalibration(sAgPure,cal)
+#sCuPure=setCalibration(sCuPure,cal)
+#sCBack=setCalibration(sCBack,cal)
 k=0.01*float(input("Input core copper fraction (%):"))
 dens = 20**-1
-thickness=2/dens
-dim=3
+thickness=2
+dim=2
+L=len(sAgPure.inav)
 ratios=np.linspace(0,1,11);
-cores=np.zeros((1,11,2048));
-shells=np.zeros((1,11,2048))
+cores=np.zeros((1,11,L));
+shells=np.zeros((1,11,L))
 
 for i in range(len(ratios)):#For some reason range(ratios) does not work
     cores[0][i]=k*sCuPure.data+(1-k)*sAgPure.data

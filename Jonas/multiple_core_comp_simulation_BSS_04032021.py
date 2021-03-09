@@ -34,7 +34,7 @@ coreCQ=[];
 shellCQ=[];
 dens = 20**-1
 thickness=5
-dim=3
+dim=int(input('Enter dimension for decomposition:'))
 for k in corrat:
     cores=np.zeros((1,11,2048));
     shells=np.zeros((1,11,2048))
@@ -66,7 +66,7 @@ for k in corrat:
 #plist=parts
     for a in plist:
         a.add_poissonian_noise()# Adds poissonian noise to the existing spectra.
-        cal = hs.load("./Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")#Kalibreringsdata
+    cal = hs.load("./Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")#Kalibreringsdata
 # For nicer plots, HyperSpy needs some meta data:
     for a in plist:
         a=setCalibration(a, cal)

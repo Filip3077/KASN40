@@ -24,8 +24,8 @@ sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
 sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
 k=0.01*float(input("Input core copper fraction (%):"))
 dens = 20**-1
-thickness=2/dens
-dim=3
+thickness=1
+dim=2
 ratios=np.linspace(0,1,11);
 cores=np.zeros((1,11,2048));
 shells=np.zeros((1,11,2048))
