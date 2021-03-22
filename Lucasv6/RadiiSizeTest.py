@@ -82,10 +82,10 @@ def quantify(factors, kfac, calSpec):
 #%% Generate particles
 s = hs.load("../Spectra/MC simulation of  a 0.020 µm base, 0.020 µm high block*.msa",stack=True,signal_type="EDS_TEM")
 
-sCu = s.inav[-1].isig[1000.0:10000.0]
-sAg  = s.inav[0].isig[1000.0:10000.0]
+sCu = s.inav[-1]#.isig[1000.0:10000.0]
+sAg  = s.inav[0]#.isig[1000.0:10000.0]
 sC = hs.load("../Spectra/Carbonbackground.msa",signal_type="EDS_TEM")
-sC = sC.isig[1000.0:10000.0]
+sC = sC#.isig[1000.0:10000.0]
 
 size = 100
 sCore = (sCu*0.9 + sAg*0.1)/10
@@ -147,7 +147,7 @@ for s in outer:
 #    
     
 #%% Evalutate particles
-decomp_dim = 2
+decomp_dim = 3
 save = []
 result = np.empty((len(cs_mat),len(cs_mat[0]),decomp_dim))
 ret = []
@@ -195,21 +195,21 @@ l = []
 for s in save:
     l.append(s[1])
 
-for x in range(5,50,5):
+for x in range(5,51,5):
     r = l[x-5:x]
     hs.plot.plot_images(r, cmap='mpl_colors',
-            axes_decor='off', per_row=2,
+            axes_decor='off', per_row=3,
             scalebar=[0], scalebar_color='white',
             padding={'top': 0.95, 'bottom': 0.05,
                      'left': 0.05, 'right':0.78})
     
 #%% 
 
-factors47 = save[47][0].inav[0:3]
+factors47 = save[48][0].inav[0:3]
 
 setCalibration(factors47, sAg)
 factors47.set_lines(['Ag_La','Cu_Ka'])
-wtCu, wtAg = quantify(factors47,[1, 0.72980399],sAg)
+wtCu, wtAg = quantify(factors47.inav[0:2],[1, 0.72980399],sAg)
 
 
 

@@ -11,6 +11,7 @@ import hyperspy.api as hs
 from coreshellfunctions import *
 import numpy as np
 from numpy import linalg
+from specMapDiff import setCalibration
 
 def addSpectrum(a,spec,specthickness):
     L = len(spec.data)
@@ -25,13 +26,24 @@ def addSpectrum(a,spec,specthickness):
     specMat.get_calibration_from(spec)
     return specMat
 
+def quantify(factors, kfac, calSpec):
+    ''' Quantifies the elements in the core or shell using choosen k-factors. '''
+    # factors = setCalibration(factors, calSpec)
+
+    bw = factors.estimate_background_windows(line_width=[5.0, 7.0])
+    intensities = factors.get_lines_intensity(background_windows=bw)
+    wtCu = factors.quantification(intensities, method='CL', factors=kfac,composition_units='weight')[1].data
+    wtAg = factors.quantification(intensities, method='CL', factors=kfac,composition_units='weight')[0].data
+    return wtCu, wtAg
+
 #%% Particle Generation
 sAgPure = hs.load("../Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("../Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
 
-sAg = 0.9*sAgPure.data + 0.1*sCuPure.data
-sCu = 0.9*sCuPure.data + 0.1*sAgPure.data
-sC = hs.load("../Spectra/Carbonbackground.msa",signal_type="EDS_TEM")
+sAg = 0.9*sAgPure.isig[1000.0:10000.0].data + 0.1*sCuPure.isig[1000.0:10000.0].data
+sCu = 0.9*sCuPure.isig[1000.0:10000.0].data + 0.1*sAgPure.isig[1000.0:10000.0].data
+sC = hs.load("../Spectra/Carbonbackground.msa",signal_type="EDS_TEM").isig[1000.0:10000.0]
+
 carbonMat = addSpectrum(np.ones((50,50)),sC,4)
 background = hs.signals.Signal1D(carbonMat)
 background.metadata.General.title = 'Background'
@@ -149,7 +161,7 @@ for i in range(nfac):
 # p_fac_rot = setCalibration(p_fac_rot, cal)
 # p_load_rot = hs.signals.BaseSignal(p_loadings_unfold)
 # ploadrot = p_load_rot.transpose(signal_axes=2)
-
+setCalibration(p_factors_selected_rot, cal.isig[1000.0:10000.0])
 hs.plot.plot_spectra(p_factors_selected_rot.isig[0.0:10000.0],style='cascade')
 plt.title('Varimax Factors')
 plt.text(x=8040, y=0.8, s='Cu-K$_\\alpha$', color='k')
@@ -166,5 +178,11 @@ hs.plot.plot_images(p_loadings_unfold,suptitle='Varimax Loadings', cmap='mpl_col
                               'left': 0.05, 'right':0.78})
 
 reConst = cLoadsFacs(p_loadings_unfold, p_factors_selected_rot)
+
+#%%
+
+setCalibration(p_factors_selected_rot, cal.isig[1000.0:10000.0])
+p_factors_selected_rot.set_lines(['Ag_La','Cu_Ka'])
+wtCu, wtAg = quantify(p_factors_selected_rot,[1, 0.72980399],cal.isig[1000.0:10000.0])
 
 
