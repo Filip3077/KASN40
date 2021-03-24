@@ -7,37 +7,40 @@ Created on Fri Mar 12 15:31:09 2021
 import hyperspy.api as hs
 import numpy as np
 import matplotlib.pyplot as plt
-from specMapDiff import setCalibration
+from coreshellfunctions import *
 
 core_spect = hs.load('./Spectra/core.msa').data
 shell_spect = hs.load('./Spectra/shell.msa').data
 
 size = 50
+a = genfullparticle(size, 20, 15, core_spect, shell_spect)
+s = a.full
+s.add_poissonian_noise()
 
-# Allt detta ner till "s.set_signal_type("EDS_TEM") är Martins sätt att generera en partikel"
+# Allt detta ner till "s.set_signal_type("EDS_TEM")" är Martins sätt att generera en partikel
 
-ld = np.abs(np.linspace(0,size-1,size).reshape((size,1))@np.ones(size).reshape((1,size))-(size-1)/2)
+# ld = np.abs(np.linspace(0,size-1,size).reshape((size,1))@np.ones(size).reshape((1,size))-(size-1)/2)
 
-d_core = np.ones((50,50))*15
-d_shell = 5
+# d_core = np.ones((50,50))*15
+# d_shell = 5
 
-l_core = np.sqrt(d_core - np.sqrt(ld**2 + ld.T**2))
-l_core = np.nan_to_num(l_core)
+# l_core = np.sqrt(d_core - np.sqrt(ld**2 + ld.T**2))
+# l_core = np.nan_to_num(l_core)
 
-l_shell = np.sqrt((d_core+d_shell )- np.sqrt(ld**2 + ld.T**2))-l_core
-l_shell = np.nan_to_num(l_shell)
+# l_shell = np.sqrt((d_core+d_shell )- np.sqrt(ld**2 + ld.T**2))-l_core
+# l_shell = np.nan_to_num(l_shell)
 
-c = np.ones((size,2,2048))
-c[:,0,:] = core_spect
-c[:,1,:] = shell_spect
+# c = np.ones((size,2,2048))
+# c[:,0,:] = core_spect
+# c[:,1,:] = shell_spect
 
-l=np.transpose(np.array([l_core, l_shell]))*0.5
+# l=np.transpose(np.array([l_core, l_shell]))*0.5
 
-plt.imshow(l[:,:,1])
+# plt.imshow(l[:,:,1])
 
-data_true = l@c  # Vet inte riktigt vad l@c inebär...
-data = np.random.poisson(data_true)
-s=hs.signals.Signal1D(data)
+# data_true = l@c  # Vet inte riktigt vad l@c inebär...
+# data = np.random.poisson(data_true)
+# s=hs.signals.Signal1D(data)
 
 s.set_signal_type("EDS_TEM")
 s.axes_manager[-1].name = 'E'
@@ -69,8 +72,8 @@ res_spec=res1.sum([0,1]).data
 s1_factors = s.get_decomposition_factors().inav[0:nfac]
 s1_loadings = s.get_decomposition_loadings().inav[0:nfac]
 
-plt.imshow(s1_loadings.data[1,:,:]) # Får inte dessa att funka, så vet inte vad han vill visa...
-plt.plot(s1_factors.data[1,:])
+# plt.imshow(s1_loadings.data[1,:,:]) # Får inte dessa att funka, så vet inte vad han vill visa...
+# plt.plot(s1_factors.data[1,:])
 
 # Kör våra vanliga istället
 hs.plot.plot_spectra(s1_factors.inav[0:nfac].isig[0.0:10000.0],style='cascade')
@@ -126,6 +129,26 @@ s1_loadings_rot = np.dstack((s1_loadings_rot, np.cos(a)*loads[1]-np.sin(a)*loads
 
 s1_factors_rot = np.cos(a)*facs[0]+np.sin(a)*facs[1]
 s1_factors_rot = np.vstack((s1_factors_rot, np.cos(a)*facs[1]-np.sin(a)*facs[0]))
+
+s1_l_rot = hs.signals.BaseSignal(s1_loadings_rot)
+s1_l_rot = s1_l_rot.transpose(navigation_axes= [0])
+s1_f_rot = hs.signals.Signal1D(s1_factors_rot)
+s1_f_rot = setCalibration(s1_f_rot, cal)
+
+hs.plot.plot_spectra(s1_f_rot.inav[0:nfac].isig[0.0:10000.0],style='cascade')
+plt.title('Rotated factors')
+plt.text(x=8040, y=0.8, s='Cu-K$_\\alpha$', color='k')
+plt.axvline(8040, c='k', ls=':', lw=0.5)
+plt.text(x=930, y=0.8, s='Cu-L$_\\alpha$', color='k')
+plt.axvline(930, c='k', ls=':', lw=0.5)
+plt.axvline(2984, c='k', ls=':', lw=0.5)
+plt.text(x=2984, y=0.8, s='Ag-L$_\\alpha$', color='k')
+
+hs.plot.plot_images(s1_l_rot.inav[0:nfac],suptitle='Rotated Loadings', cmap='mpl_colors',
+                    axes_decor='off', per_row=3,
+                    scalebar=[1], scalebar_color='white',
+                    padding={'top': 0.95, 'bottom': 0.05,
+                              'left': 0.05, 'right':0.78})
 
 plt.plot(s1_factors_rot[0,:])
 plt.imshow(s1_loadings_rot[:,:,0])
