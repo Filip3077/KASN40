@@ -19,6 +19,7 @@ from specerr import *
 from specMapDiff import *
 import numpy as np
 from coreshellFunctions import checkLoadFit
+from scipy.ndimage import gaussian_filter
 sAgPure = hs.load("./Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
 sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
@@ -29,7 +30,7 @@ sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
 k=0.01*float(input("Input core copper fraction (%):"))
 dens = 20**-1
 thickness=1
-dim=3
+dim=2
 L=len(sAgPure.inav)
 ratios=np.linspace(0,1,11);
 cores=np.zeros((1,11,L));
@@ -63,7 +64,9 @@ slist=list(map(lambda x: hs.signals.Signal1D(x), shell))
 #plist=parts
 for a in plist:
     a.add_poissonian_noise()# Adds poissonian noise to the existing spectra.
+    a=a.map(gaussian_filter,sigma=2.5)
 cal = hs.load("./Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")#Kalibreringsdata
+
 # For nicer plots, HyperSpy needs some meta data:
 for a in plist:
     a=setCalibration(a, cal)

@@ -19,6 +19,7 @@ from specerr import *
 from specMapDiff import *
 import numpy as np
 from coreshellFunctions import checkLoadFit
+from compact_rotation import CompactRot
 sAgPure = hs.load("./Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
 sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
@@ -28,8 +29,8 @@ sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
 #sCBack=setCalibration(sCBack,cal)
 k=0.01*float(input("Input core copper fraction (%):"))
 dens = 20**-1
-thickness=1
-dim=3
+thickness=2
+dim=int(input("Number of decomposition dimensions"))
 L=len(sAgPure.inav)
 ratios=np.linspace(0,1,11);
 cores=np.zeros((1,11,L));
@@ -82,22 +83,22 @@ cchoice=[];
 schoice=[];
 kfacs = [1,0.72980399]
 for i in range(len(plist)):
-    plist[i].decomposition(True,algorithm='NMF',output_dimension =dim) # The "True" variable tells the function to normalize poissonian noise.
-    factors = plist[i].get_decomposition_factors() 
-    loadings =plist[i].get_decomposition_loadings()
-    #c,s=0,1;
+    plist[i].decomposition(True,output_dimension =dim) # The "True" variable tells the function to normalize poissonian noise.
+    factors = plist[i].get_decomposition_factors().inav[0:dim] 
+    loadings =plist[i].get_decomposition_loadings().inav[0:dim]
+    factors.data,loadings.data=CompactRot(factors.data,loadings.data,(-np.pi/4,0))
     c,s=checkLoadFit(clist[i],slist[i],factors,loadings, dim,'abs')
     cchoice.append(c);
     schoice.append(s);
-    NMFspec1 = cLoadsFacs(loadings, factors)
+    spec1 = cLoadsFacs(loadings, factors)
     cFac.append(factors.inav[c]);
     sFac.append(factors.inav[s]);
-    NMFparticle1 = NMFspec1.inav[0] + NMFspec1.inav[1]
+    particle1 = spec1.inav[0] + spec1.inav[1]
     orBlueMapCuAg(factors,loadings,'NMF')
-    err.append(SpecErrAbs2D(NMFparticle1,plist[i]));
-    coreerr.append(SpecErrAbs2D(NMFspec1.inav[c],clist[i]));
-    shellerr.append(SpecErrAbs2D(NMFspec1.inav[s],slist[i]));
-    NMFparts.append(NMFparticle1);
+    err.append(SpecErrAbs2D(particle1,plist[i]));
+    coreerr.append(SpecErrAbs2D(spec1.inav[c],clist[i]));
+    shellerr.append(SpecErrAbs2D(spec1.inav[s],slist[i]));
+    NMFparts.append(particle1);
     
 #%%Kvantifiera
 csF=[hs.stack(cFac),hs.stack(sFac)]
