@@ -13,34 +13,34 @@ core_spect = hs.load('./Spectra/core.msa').data
 shell_spect = hs.load('./Spectra/shell.msa').data
 
 size = 50
-a = genfullparticle(size, 20, 15, core_spect, shell_spect)
-s = a.full
-s.add_poissonian_noise()
+# a = genfullparticle(size, 20, 15, core_spect, shell_spect)
+# s = a.full
+# s.add_poissonian_noise()
 
 # Allt detta ner till "s.set_signal_type("EDS_TEM")" är Martins sätt att generera en partikel
 
-# ld = np.abs(np.linspace(0,size-1,size).reshape((size,1))@np.ones(size).reshape((1,size))-(size-1)/2)
+ld = np.abs(np.linspace(0,size-1,size).reshape((size,1))@np.ones(size).reshape((1,size))-(size-1)/2)
 
-# d_core = np.ones((50,50))*15
-# d_shell = 5
+d_core = np.ones((50,50))*15
+d_shell = 5
 
-# l_core = np.sqrt(d_core - np.sqrt(ld**2 + ld.T**2))
-# l_core = np.nan_to_num(l_core)
+l_core = np.sqrt(d_core - np.sqrt(ld**2 + ld.T**2))
+l_core = np.nan_to_num(l_core)
 
-# l_shell = np.sqrt((d_core+d_shell )- np.sqrt(ld**2 + ld.T**2))-l_core
-# l_shell = np.nan_to_num(l_shell)
+l_shell = np.sqrt((d_core+d_shell )- np.sqrt(ld**2 + ld.T**2))-l_core
+l_shell = np.nan_to_num(l_shell)
 
-# c = np.ones((size,2,2048))
-# c[:,0,:] = core_spect
-# c[:,1,:] = shell_spect
+c = np.ones((size,2,2048))
+c[:,0,:] = core_spect
+c[:,1,:] = shell_spect
 
-# l=np.transpose(np.array([l_core, l_shell]))*0.5
+l=np.transpose(np.array([l_core, l_shell]))*0.5
 
-# plt.imshow(l[:,:,1])
+plt.imshow(l[:,:,1])
 
-# data_true = l@c  # Vet inte riktigt vad l@c inebär...
-# data = np.random.poisson(data_true)
-# s=hs.signals.Signal1D(data)
+data_true = l@c  # Vet inte riktigt vad l@c inebär...
+data = np.random.poisson(data_true)
+s=hs.signals.Signal1D(data)
 
 s.set_signal_type("EDS_TEM")
 s.axes_manager[-1].name = 'E'

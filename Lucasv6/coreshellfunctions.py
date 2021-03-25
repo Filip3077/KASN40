@@ -10,6 +10,21 @@ import matplotlib.pyplot as plt
 from coreshellp import CoreShellP, CoreShellSpec
 from specerr import *
 
+def quantify(factors, kfac, lineWidth=[], calSpec=[]):
+    ''' Quantifies the elements in the core or shell using choosen k-factors. '''
+    
+    if len(calSpec)>0:
+        factors = setCalibration(factors, calSpec)
+        
+    if len(lineWidth)==0:
+        lineWidth = [5.0, 7.0]
+
+    bw = factors.estimate_background_windows(line_width=lineWidth)
+    intensities = factors.get_lines_intensity(background_windows=bw)
+    wtCu = factors.quantification(intensities, method='CL', factors=kfac,composition_units='weight')[1].data
+    wtAg = factors.quantification(intensities, method='CL', factors=kfac,composition_units='weight')[0].data
+    return wtCu, wtAg
+
 def specMapDiff(map1,refMap):
     #Om map1 och map2 är hyperspy objekt går det helt enkelt att ta differensen direkt samt att ta absolutvärdet av denna. Om dimentionerna stämmer dvs. 
     diff = abs(map1-refMap)
@@ -60,14 +75,15 @@ def rel(EF_map,ref):
 
 def setCalibration(ucMap,calSpec):
     ucMap.set_signal_type("EDS_TEM")
-    ucMap.axes_manager[0].name = 'y'
-    ucMap.axes_manager[1].name = 'x'
-    ucMap.axes_manager['x'].units = 'nm'
-    ucMap.axes_manager['y'].units = 'nm'
+    if len(ucMap)>1:
+        ucMap.axes_manager[0].name = 'y'
+        ucMap.axes_manager[1].name = 'x'
+        ucMap.axes_manager['x'].units = 'nm'
+        ucMap.axes_manager['y'].units = 'nm'
     ucMap.axes_manager[-1].name = 'E'
     ucMap.get_calibration_from(calSpec)
-    ucMap.add_elements(['Ag','Cu', 'C'])
-    ucMap.add_lines(['Ag_La','Cu_Ka','C_Ka'])
+    ucMap.add_elements(['Ag','Cu'])
+    ucMap.add_lines(['Ag_La','Cu_Ka'])
     return ucMap
 
 def cLoadsFacs(loads,facs):
@@ -262,18 +278,18 @@ class postStatprocess:
         self.relmapshell = [rel(self.errmapshell[0], imComp[0]),rel(self.errmapshell[1], imComp[1])]
         
         # Quantification
-    def quantify(self,kfac):
-        ''' Quantifies the elements in the core and shell using choosen k-factors. '''
-        factors = self.factors
-        factors = setCalibration(factors, self.calSpec)
+    # def quantify(self,kfac):
+    #     ''' Quantifies the elements in the core and shell using choosen k-factors. '''
+    #     factors = self.factors
+    #     factors = setCalibration(factors, self.calSpec)
     
-        bw = factors.inav[self.corecomp].estimate_background_windows(line_width=[5.0, 7.0])
-        intensities = factors.inav[self.corecomp].get_lines_intensity(background_windows=bw)
-        self.coreCu = factors.inav[self.corecomp].quantification(intensities, method='CL', factors=kfac,composition_units='weight')[1].data
-        self.coreAg = factors.inav[self.corecomp].quantification(intensities, method='CL', factors=kfac,composition_units='weight')[0].data
-        bw = factors.inav[self.shellcomp].estimate_background_windows(line_width=[5.0, 7.0])
-        intensities = factors.inav[self.shellcomp].get_lines_intensity(background_windows=bw)
-        self.shellCu = factors.inav[self.shellcomp].quantification(intensities, method='CL', factors=kfac,composition_units='weight')[1].data
-        self.shellAg = factors.inav[self.shellcomp].quantification(intensities, method='CL', factors=kfac,composition_units='weight')[0].data
+    #     bw = factors.inav[self.corecomp].estimate_background_windows(line_width=[5.0, 7.0])
+    #     intensities = factors.inav[self.corecomp].get_lines_intensity(background_windows=bw)
+    #     self.coreCu = factors.inav[self.corecomp].quantification(intensities, method='CL', factors=kfac,composition_units='weight')[1].data
+    #     self.coreAg = factors.inav[self.corecomp].quantification(intensities, method='CL', factors=kfac,composition_units='weight')[0].data
+    #     bw = factors.inav[self.shellcomp].estimate_background_windows(line_width=[5.0, 7.0])
+    #     intensities = factors.inav[self.shellcomp].get_lines_intensity(background_windows=bw)
+    #     self.shellCu = factors.inav[self.shellcomp].quantification(intensities, method='CL', factors=kfac,composition_units='weight')[1].data
+    #     self.shellAg = factors.inav[self.shellcomp].quantification(intensities, method='CL', factors=kfac,composition_units='weight')[0].data
         
         
