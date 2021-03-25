@@ -94,9 +94,27 @@ class CoreShellSpec:
                      self.core.data[i][j]+=backspec.data*thickness;
                  else:
                      self.core[i][j]+=backspec.data*thickness;
-           
+                     
+     def add_core_component(self, compspec,frac):
+         '''Adds an element to the core. Only valid for small additions (frac<<1)'''
+         k=frac/(1-frac);
+         for i in range(self.base.size):
+            for j in range(self.base.size):
+                if self.signal:
+                     self.core.data[i][j]=(1-k)*self.core.data[i][j]+compspec.data*k*self.base.core[i,j];
+            else:
+                     self.core[i][j]=(1-k)*self.core[i][j]+compspec.data*k*self.base.core[i,j];
+                     
+     def add_shell_component(self,compspec,frac):
+         '''Adds an element to the shell. Only valid for small additions (frac<<1)'''
+         k=frac/(1-frac);
+         for i in range(self.base.size):
+             for j in range(self.base.size):
+                 if self.signal:
+                     self.shell.data[i][j]=(1-k)*self.shell.data[i][j]+compspec.data*k*self.base.shell[i,j];
+                 else:
+                     self.shell[i][j]=(1-k)*self.shell[i][j]+compspec.data*k*self.base.shell[i,j];
 
-         
 class CoreShellBack:
     def __init__(self,a,spec,dens,signal=True):
         self.signal=signal;
