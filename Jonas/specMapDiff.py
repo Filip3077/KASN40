@@ -45,6 +45,24 @@ def orBlueMapCuAg(factors,loadings, title):
                              'left': 0.05, 'right':0.78})
     return None
 
+def orBlueMapCuAg2(factors,loadings, title1,title2):
+    hs.plot.plot_spectra(factors.isig[0.0:10000.0],style='cascade')
+    plt.title(title1)
+    plt.text(x=8040, y=0.8, s='Cu-K$_\\alpha$', color='k')
+    plt.axvline(8040, c='k', ls=':', lw=0.5)
+    plt.text(x=930, y=0.8, s='Cu-L$_\\alpha$', color='k')
+    plt.axvline(930, c='k', ls=':', lw=0.5)
+    plt.axvline(2984, c='k', ls=':', lw=0.5)
+    plt.text(x=2984, y=0.8, s='Ag-L$_\\alpha$', color='k')
+
+    hs.plot.plot_images(loadings,suptitle=title2, cmap='mpl_colors',
+                    axes_decor='off', per_row=3,
+                    scalebar=[0], scalebar_color='white',
+                    padding={'top': 0.95, 'bottom': 0.05,
+                             'left': 0.05, 'right':0.78})
+    
+    return None
+
 def rel(EF_map,ref):
     '''
     Tar den relativa 

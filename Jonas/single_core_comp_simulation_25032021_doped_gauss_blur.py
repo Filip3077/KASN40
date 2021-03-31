@@ -18,17 +18,25 @@ from coreshellp import *
 from specerr import *
 from specMapDiff import *
 import numpy as np
-from coreshellFunctions import checkLoadFit
+from loadassign import checkLoadFit
+from scipy.ndimage import gaussian_filter
 sAgPure = hs.load("./Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
 sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
+sFe=hs.load("./Spectra/20 nm cube Fe.msa", signal_type="EDS_TEM")
+sAu=hs.load("./Spectra/20 nm cube Au.msa", signal_type="EDS_TEm")
+#cal = hs.load("./Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")
+#sAgPure=setCalibration(sAgPure,cal)
+#sCuPure=setCalibration(sCuPure,cal)
+#sCBack=setCalibration(sCBack,cal)
 k=0.01*float(input("Input core copper fraction (%):"))
 dens = 20**-1
-thickness=1
+thickness=0
 dim=2
+L=len(sAgPure.inav)
 ratios=np.linspace(0,1,11);
-cores=np.zeros((1,11,2048));
-shells=np.zeros((1,11,2048))
+cores=np.zeros((1,11,L));
+shells=np.zeros((1,11,L))
 
 for i in range(len(ratios)):#For some reason range(ratios) does not work
     cores[0][i]=k*sCuPure.data+(1-k)*sAgPure.data
@@ -39,6 +47,8 @@ for i in range(len(ratios)):
     x.append(CoreShellP(50,20.0,15.0,dens,dens,1))
     a.append(CoreShellSpec(x[i],cores[0][i],shells[0][i],False))
     a[i].add_background(sCBack,thickness)
+    a[i].add_core_component(sFe,0.1)
+    a[i].add_shell_component(sAu,0.1)
 # CoreShellP generates two 3D matrices of a sphere. One consisting of the core and one as the shell. 
  # The density here can be seen as having the unit nm^-3 to make the values in the sphere matrix unitless.
 # 50x50 pixels, 20nm outer radius, 15nm core radius, densities, 1x1 nm pixel size.
@@ -47,6 +57,8 @@ for i in range(len(ratios)):
 # HyperSpy objects for the latter comparrisons. Combining these gives us a HyperSpy object of a whole particle (p). 
 core = [y.core for y in a]
 shell = [y.shell for y in a]
+bcore=[y.base.core for y in a]
+bshell=[y.base.shell for y in a]
 #core=list(map(lambda x: hs.signals.Signal1D(x),core))
 #shell=list(map(lambda x: hs.signals.Signal1D(x),shell))
 parts=[y.getmatr() for y in a]
@@ -56,11 +68,15 @@ slist=list(map(lambda x: hs.signals.Signal1D(x), shell))
 #plist=parts
 for a in plist:
     a.add_poissonian_noise()# Adds poissonian noise to the existing spectra.
-cal = hs.load("./Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")#Kalibreringsdata
+    a=a.map(gaussian_filter,sigma=2.5)
+cal = hs.load("./Spectra/20nm cube Cu40Ag60.msa",signal_type="EDS_TEM")#Kalibreringsdata
+
 # For nicer plots, HyperSpy needs some meta data:
 for a in plist:
     a=setCalibration(a, cal)
     cut_spectrum_bottom(a,1000.0)
+    a.add_elements(['Fe','Au'])
+    a.add_lines(['Fe_Ka','Au_Ma'])
 #Make image
 imList=[y.get_lines_intensity() for y in plist]
 #for im in imList:
@@ -76,10 +92,9 @@ cchoice=[];
 schoice=[];
 kfacs = [1,0.72980399]
 for i in range(len(plist)):
-    plist[i].decomposition(True,algorithm='sklearn_pca',output_dimension=dim) # The "True" variable tells the function to normalize poissonian noise.
-    plist[i].blind_source_separation(number_of_components=dim);
-    factors = plist[i].get_bss_factors() 
-    loadings =plist[i].get_bss_loadings()
+    plist[i].decomposition(True,algorithm='NMF',output_dimension =dim) # The "True" variable tells the function to normalize poissonian noise.
+    factors = plist[i].get_decomposition_factors() 
+    loadings =plist[i].get_decomposition_loadings()
     #c,s=0,1;
     c,s=checkLoadFit(clist[i],slist[i],factors,loadings, dim,'abs')
     cchoice.append(c);
@@ -120,3 +135,13 @@ plt.xlabel('Fraction Cu in shell')
 plt.ylabel('Relative error (core)')
 plt.figure(1002)
 plt.plot(ratios,cchoice)
+plt.figure(1003)
+plt.plot(ratios,quant[0][1].data)
+plt.xlabel('Fraction Cu in shell')
+plt.ylabel('CL estimate of core Cu content')
+plt.title('CL estimate of core Cu content with a true value of '+cont+'%')
+plt.figure(1004)
+plt.plot(ratios,quant[1][1].data)
+plt.xlabel('Fraction Cu in shell')
+plt.ylabel('CL estimate of shell Cu content')
+plt.title('CL estimate of shell Cu content with a true value of '+cont+'%')

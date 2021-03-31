@@ -17,13 +17,14 @@ def RotAngle(loads,bound_interval):
     res = minimize_scalar(RotCompactness, args=loads, bounds=bound_interval, method='bounded')
     return res.x
 
-def CompactRot(factors, loadings, bound_interval):
-    angle=RotAngle(loadings.data, bound_interval)
-    new_load0=np.cos(angle)*loadings.data[0]+np.sin(angle)*loadings.data[1]
-    new_load1=np.cos(angle)*loadings.data[1]-np.sin(angle)*loadings.data[0]
-    new_fac0=np.cos(angle)*factors.data[0]+np.sin(angle)*factors.data[1]
-    new_fac1=np.cos(angle)*factors.data[1]-np.sin(angle)*factors.data[0]
-    loadings.data=np.dstack(new_load0,new_load1)
-    factors.data=np.vstack(new_fac0,new_fac1)
-    return factors,loadings
+def CompactRot(factors, loadings, bound_interval,nfac):
+    loads=(loadings.data[0,:,:],loadings.data[1,:,:])
+    a1=RotAngle(loads, bound_interval)
+    R1 = np.eye(nfac); 
+    R1[0,:] = [np.cos(a1), -np.sin(a1)]; R1[1,:] = [np.sin(a1), np.cos(a1)]
+    rotload=loadings.deepcopy();
+    rotfac=factors.deepcopy();
+    rotload.data=np.matmul(loadings.data.T,R1).T
+    rotfac.data=np.matmul(factors.data.T,R1).T;
+    return rotfac,rotload
     

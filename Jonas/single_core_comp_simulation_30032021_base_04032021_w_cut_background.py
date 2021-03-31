@@ -18,17 +18,24 @@ from coreshellp import *
 from specerr import *
 from specMapDiff import *
 import numpy as np
-from coreshellFunctions import checkLoadFit
+from loadassign import checkLoadFit
 sAgPure = hs.load("./Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
 sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
+
+#cal = hs.load("./Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")
+#sAgPure=setCalibration(sAgPure,cal)
+#sCuPure=setCalibration(sCuPure,cal)
+#sCBack=setCalibration(sCBack,cal)
 k=0.01*float(input("Input core copper fraction (%):"))
+cont=str(100*k)
 dens = 20**-1
 thickness=1
-dim=2
+dim=3
+L=len(sAgPure.inav)
 ratios=np.linspace(0,1,11);
-cores=np.zeros((1,11,2048));
-shells=np.zeros((1,11,2048))
+cores=np.zeros((1,11,L));
+shells=np.zeros((1,11,L))
 
 for i in range(len(ratios)):#For some reason range(ratios) does not work
     cores[0][i]=k*sCuPure.data+(1-k)*sAgPure.data
@@ -47,6 +54,8 @@ for i in range(len(ratios)):
 # HyperSpy objects for the latter comparrisons. Combining these gives us a HyperSpy object of a whole particle (p). 
 core = [y.core for y in a]
 shell = [y.shell for y in a]
+bcore=[y.base.core for y in a]
+bshell=[y.base.shell for y in a]
 #core=list(map(lambda x: hs.signals.Signal1D(x),core))
 #shell=list(map(lambda x: hs.signals.Signal1D(x),shell))
 parts=[y.getmatr() for y in a]
@@ -76,10 +85,9 @@ cchoice=[];
 schoice=[];
 kfacs = [1,0.72980399]
 for i in range(len(plist)):
-    plist[i].decomposition(True,algorithm='sklearn_pca',output_dimension=dim) # The "True" variable tells the function to normalize poissonian noise.
-    plist[i].blind_source_separation(number_of_components=dim);
-    factors = plist[i].get_bss_factors() 
-    loadings =plist[i].get_bss_loadings()
+    plist[i].decomposition(True,algorithm='NMF',output_dimension =dim) # The "True" variable tells the function to normalize poissonian noise.
+    factors = plist[i].get_decomposition_factors() 
+    loadings =plist[i].get_decomposition_loadings()
     #c,s=0,1;
     c,s=checkLoadFit(clist[i],slist[i],factors,loadings, dim,'abs')
     cchoice.append(c);
@@ -88,6 +96,8 @@ for i in range(len(plist)):
     cFac.append(factors.inav[c]);
     sFac.append(factors.inav[s]);
     NMFparticle1 = NMFspec1.inav[0] + NMFspec1.inav[1]
+    #title1='NMF decomposition spectra for '+cont+' % Cu in core and '+str(i*10)+' % Cu in shell';
+    #title2='NMF decomposition loadings for '+cont+' % Cu in core and '+str(i*10)+' % Cu in shell';
     orBlueMapCuAg(factors,loadings,'NMF')
     err.append(SpecErrAbs2D(NMFparticle1,plist[i]));
     coreerr.append(SpecErrAbs2D(NMFspec1.inav[c],clist[i]));
@@ -114,9 +124,19 @@ np.array(coreerr)
 plt.figure(1001)
 plt.plot(ratios, coreerr)
 plt.ylim(0,2)
-cont=str(100*k)
 plt.title(cont+'% Cu in core')
 plt.xlabel('Fraction Cu in shell')
 plt.ylabel('Relative error (core)')
 plt.figure(1002)
 plt.plot(ratios,cchoice)
+plt.figure(1003)
+plt.plot(ratios,0.01*quant[0][1].data)
+plt.ylim([0,1])
+plt.xlabel('Fraction Cu in shell')
+plt.ylabel('CL estimate of core Cu content')
+plt.title('CL estimate of core Cu content with a true value of '+cont+'%')
+plt.figure(1004)
+plt.plot(ratios,0.01*quant[1][1].data)
+plt.xlabel('Fraction Cu in shell')
+plt.ylabel('CL estimate of shell Cu content')
+plt.title('CL estimate of shell Cu vs. true content')

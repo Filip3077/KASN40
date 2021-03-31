@@ -14,11 +14,11 @@ Created on Thu Feb 25 14:46:46 2021
 """
 import matplotlib.pyplot as plt
 import hyperspy.api as hs
-from coreshellp import CoreShellP, CoreShellSpec
+from coreshellp import *
 from specerr import *
 from specMapDiff import *
 import numpy as np
-from coreshellFunctions import checkLoadFit
+from loadassign import checkLoadFit
 from scipy.ndimage import gaussian_filter
 sAgPure = hs.load("./Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
@@ -30,7 +30,7 @@ sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
 k=0.01*float(input("Input core copper fraction (%):"))
 dens = 20**-1
 thickness=1
-dim=2
+dim=int(input('Input number of decomposition dimensions: '))
 L=len(sAgPure.inav)
 ratios=np.linspace(0,1,11);
 cores=np.zeros((1,11,L));
@@ -64,12 +64,13 @@ slist=list(map(lambda x: hs.signals.Signal1D(x), shell))
 #plist=parts
 for a in plist:
     a.add_poissonian_noise()# Adds poissonian noise to the existing spectra.
-    a=a.map(gaussian_filter,sigma=2.5)
+    a=a.map(gaussian_filter,sigma=2)
 cal = hs.load("./Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")#Kalibreringsdata
 
 # For nicer plots, HyperSpy needs some meta data:
 for a in plist:
     a=setCalibration(a, cal)
+    cut_spectrum_bottom(a,1000.0)
 #Make image
 imList=[y.get_lines_intensity() for y in plist]
 #for im in imList:
@@ -128,3 +129,14 @@ plt.xlabel('Fraction Cu in shell')
 plt.ylabel('Relative error (core)')
 plt.figure(1002)
 plt.plot(ratios,cchoice)
+plt.figure(1003)
+plt.plot(ratios,0.01*quant[0][1].data)
+plt.ylim([0,1])
+plt.xlabel('Fraction Cu in shell')
+plt.ylabel('CL estimate of core Cu content')
+plt.title('CL estimate of core Cu content with a true value of '+cont+'%')
+plt.figure(1004)
+plt.plot(ratios,0.01*quant[1][1].data)
+plt.xlabel('Fraction Cu in shell')
+plt.ylabel('CL estimate of shell Cu content')
+plt.title('CL estimate of shell Cu vs. true content')

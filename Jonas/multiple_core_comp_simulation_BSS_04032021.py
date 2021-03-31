@@ -70,6 +70,7 @@ for k in corrat:
 # For nicer plots, HyperSpy needs some meta data:
     for a in plist:
         a=setCalibration(a, cal)
+        cut_spectrum_bottom(a,1000.0)
 #Make image
     #imList=[y.get_lines_intensity() for y in plist]
     #for im in imList:

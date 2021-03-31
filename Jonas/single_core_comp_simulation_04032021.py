@@ -14,11 +14,11 @@ Created on Thu Feb 25 14:46:46 2021
 """
 import matplotlib.pyplot as plt
 import hyperspy.api as hs
-from coreshellp import CoreShellP, CoreShellSpec
+from coreshellp import *
 from specerr import *
 from specMapDiff import *
 import numpy as np
-from coreshellFunctions import checkLoadFit
+from loadassign import checkLoadFit
 sAgPure = hs.load("./Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
 sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
@@ -27,9 +27,10 @@ sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
 #sCuPure=setCalibration(sCuPure,cal)
 #sCBack=setCalibration(sCBack,cal)
 k=0.01*float(input("Input core copper fraction (%):"))
+cont=str(100*k)
 dens = 20**-1
 thickness=1
-dim=3
+dim=2
 L=len(sAgPure.inav)
 ratios=np.linspace(0,1,11);
 cores=np.zeros((1,11,L));
@@ -67,6 +68,7 @@ cal = hs.load("./Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")#Kalibrer
 # For nicer plots, HyperSpy needs some meta data:
 for a in plist:
     a=setCalibration(a, cal)
+    cut_spectrum_bottom(a,1000.0)
 #Make image
 imList=[y.get_lines_intensity() for y in plist]
 #for im in imList:
@@ -93,6 +95,8 @@ for i in range(len(plist)):
     cFac.append(factors.inav[c]);
     sFac.append(factors.inav[s]);
     NMFparticle1 = NMFspec1.inav[0] + NMFspec1.inav[1]
+    #title1='NMF decomposition spectra for '+cont+' % Cu in core and '+str(i*10)+' % Cu in shell';
+    #title2='NMF decomposition loadings for '+cont+' % Cu in core and '+str(i*10)+' % Cu in shell';
     orBlueMapCuAg(factors,loadings,'NMF')
     err.append(SpecErrAbs2D(NMFparticle1,plist[i]));
     coreerr.append(SpecErrAbs2D(NMFspec1.inav[c],clist[i]));
@@ -119,9 +123,19 @@ np.array(coreerr)
 plt.figure(1001)
 plt.plot(ratios, coreerr)
 plt.ylim(0,2)
-cont=str(100*k)
 plt.title(cont+'% Cu in core')
 plt.xlabel('Fraction Cu in shell')
 plt.ylabel('Relative error (core)')
 plt.figure(1002)
 plt.plot(ratios,cchoice)
+plt.figure(1003)
+plt.plot(ratios,0.01*quant[0][1].data)
+plt.ylim([0,1])
+plt.xlabel('Fraction Cu in shell')
+plt.ylabel('CL estimate of core Cu content')
+plt.title('CL estimate of core Cu content with a true value of '+cont+'%')
+plt.figure(1004)
+plt.plot(ratios,0.01*quant[1][1].data)
+plt.xlabel('Fraction Cu in shell')
+plt.ylabel('CL estimate of shell Cu content')
+plt.title('CL estimate of shell Cu vs. true content')

@@ -9,6 +9,11 @@ import hyperspy.api as hs
 import numpy as np
 import scipy.misc
 
+def cut_spectrum_bottom(hs,at):
+    at=float(at);
+    hs.isig[0:at].data-=hs.isig[0:at].data;
+    return None
+
 class EdxMat:
     def __init__(self,size,r: float,dens:float,l: float):
         '''size: defines the 'picture' size as size x size pixels\n
@@ -97,24 +102,23 @@ class CoreShellSpec:
                      
      def add_core_component(self, compspec,frac):
          '''Adds an element to the core. Only valid for small additions (frac<<1)'''
-         k=frac/(1-frac);
          for i in range(self.base.size):
             for j in range(self.base.size):
                 if self.signal:
-                     self.core.data[i][j]=(1-k)*self.core.data[i][j]+compspec.data*k*self.base.core[i,j];
+                     self.core.data[i][j]=self.core.data[i][j]*(1-frac)+compspec.data*frac*self.base.core[i,j];
             else:
-                     self.core[i][j]=(1-k)*self.core[i][j]+compspec.data*k*self.base.core[i,j];
+                     self.core[i][j]=self.core[i][j]*(1-frac)+compspec.data*frac*self.base.core[i,j];
                      
      def add_shell_component(self,compspec,frac):
          '''Adds an element to the shell. Only valid for small additions (frac<<1)'''
-         k=frac/(1-frac);
          for i in range(self.base.size):
              for j in range(self.base.size):
                  if self.signal:
-                     self.shell.data[i][j]=(1-k)*self.shell.data[i][j]+compspec.data*k*self.base.shell[i,j];
+                     self.shell.data[i][j]=self.shell.data[i][j]*(1-frac)+compspec.data*frac*self.base.shell[i,j];
                  else:
-                     self.shell[i][j]=(1-k)*self.shell[i][j]+compspec.data*k*self.base.shell[i,j];
+                     self.shell[i][j]=self.shell[i][j]*(1-frac)+compspec.data*frac*self.base.shell[i,j];
 
+    
 class CoreShellBack:
     def __init__(self,a,spec,dens,signal=True):
         self.signal=signal;

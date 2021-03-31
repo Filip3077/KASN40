@@ -14,7 +14,7 @@ Created on Thu Feb 25 14:46:46 2021
 """
 import matplotlib.pyplot as plt
 import hyperspy.api as hs
-from coreshellp import CoreShellP, CoreShellSpec
+from coreshellp import *
 from specerr import *
 from specMapDiff import *
 import numpy as np
@@ -62,6 +62,7 @@ cal = hs.load("./Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")#Kalibrer
 # For nicer plots, HyperSpy needs some meta data:
 for a in plist:
     a=setCalibration(a, cal)
+    cut_spectrum_bottom(a,1000.0)
 #Make image
 imList=[y.get_lines_intensity() for y in plist]
 #for im in imList:

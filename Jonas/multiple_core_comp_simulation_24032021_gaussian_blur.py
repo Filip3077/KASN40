@@ -16,11 +16,11 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 import hyperspy.api as hs
-from coreshellp import CoreShellP, CoreShellSpec
+from coreshellp import *
 from specerr import *
 from specMapDiff import *
 import numpy as np
-from coreshellFunctions import checkLoadFit
+from loadassign import checkLoadFit
 from scipy.ndimage import gaussian_filter
 sAgPure = hs.load("./Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
@@ -72,6 +72,7 @@ for k in corrat:
 # For nicer plots, HyperSpy needs some meta data:
     for a in plist:
         a=setCalibration(a, cal)
+        cut_spectrum_bottom(a,1000.0)
 #Make image
     #imList=[y.get_lines_intensity() for y in plist]
     #for im in imList:
