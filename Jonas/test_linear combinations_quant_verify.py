@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Feb  8 14:53:32 2021
+
 @author: Jonas Elmroth Nordlander
 KASN20 Projekt VT 2021
 Skriptet testar hur väl det funkar att linjärkombinera spektrum för 100 %\n
 rent Cu och Ag (både i molprocent och mass procent) jämtemot MC-simulerade \n
 spektrum med motsvarande sammansättning.
+
 """
 import matplotlib.pyplot as plt
 import hyperspy.api as hs
@@ -45,7 +47,7 @@ p.axes_manager['y'].units = 'nm'
 p.axes_manager[-1].name = 'E'
 p.add_elements(['Ag','Cu']) 
 p.add_lines(['Ag_La','Cu_Ka'])  
-p.get_calibration_from(sCal)
+p.get_calibration_from(sAg)
 
 
 #Baserat på de spektrumen genererade av DSTA-II beräknas IAg/ICu för alla spektrum 
@@ -63,7 +65,7 @@ for i in p:
 I = I[1:len(s[0])-1]
 I = np.asarray(I)
 I = I.reshape((-1,1))
-comp = np.linspace(0.2,0.8,4)
+comp = np.linspace(0.1,0.9,9)
 c = comp/(1-comp)
 
 model = LinearRegression()
@@ -105,17 +107,19 @@ for i in q:
     i.get_calibration_from(sAg)
     corebw = i.estimate_background_windows(line_width=[5.0, 7.0]) 
     intensities = i.get_lines_intensity(background_windows=corebw)
-    weight_percent = i.quantification(intensities, method='CL', factors=kfactors)
+    weight_percent = i.quantification(intensities, method='CL', factors=kfactors,composition_units='weight')
     AgKvant.append(weight_percent[0].data[0])
     I2.append(intensities[0].data[0]/intensities[1].data[0])
 
 #Likt tidigare passas en k-faktor till denna data. 
+comp2=np.linspace(0.2,0.8,4)
+c2=comp2/(1-comp2)
 I2 = np.asarray(I2)
 
 I2 = I2.reshape((-1,1))
 
 model2 = LinearRegression()
-model2.fit(I2,c)
+model2.fit(I2,c2)
 k2 = model2.coef_
 kfactors2 = [k2, 1]
 
@@ -130,7 +134,7 @@ for i in q:
     i.get_calibration_from(sAg)
     corebw = i.estimate_background_windows(line_width=[5.0, 7.0]) 
     intensities = i.get_lines_intensity(background_windows=corebw)
-    weight_percent = i.quantification(intensities, method='CL', factors=kfactors2)
+    weight_percent = i.quantification(intensities, method='CL', factors=kfactors2,composition_units='weight')
     AgKvantV2.append(weight_percent[0].data[0])
 
 #Beräknar At% silver för DTSA spektrumen med faktorerna från linjärkombinationbaserade faktorerna 
@@ -138,31 +142,32 @@ factors2 = []
 for i in p:
     corebw = i.estimate_background_windows(line_width=[5.0, 7.0]) 
     intensities = i.get_lines_intensity(background_windows=corebw)
-    weight_percent = p.quantification(intensities, method='CL', factors=kfactors2)
+    weight_percent = p.quantification(intensities, method='CL', factors=kfactors2,composition_units='weight')
     factors2.append(weight_percent[0].data[0])
 
 
 #Plottar alltsammans 
 comp = comp*100
-diff = abs(AgKvant-comp)
-diff2 = abs(AgKvantV2-comp)
+comp2=comp2*100
+diff = abs(AgKvant-comp2)
+diff2 = abs(AgKvantV2-comp2)
 plt.figure()
 
 plt.subplot(211)
 plt.title('Measured At% vs True, on linear combination')
-plt.plot(comp,AgKvant,'b', comp,comp,'k',comp,AgKvantV2,'r')
+plt.plot(comp2,AgKvant,'b', comp2,comp2,'k',comp2,AgKvantV2,'r')
 plt.legend(["Facs based on DSTA","True values","Facs based on linear comb."])
 plt.xlabel('At% Ag true')
 plt.ylabel('At% Ag calculated')
 
 plt.subplot(212)
 plt.title('Diff between true and calculated')
-plt.plot(comp,diff,'bo',comp,diff2,'ro')
+plt.plot(comp2,diff,'bo',comp2,diff2,'ro')
 plt.xlabel('At% Ag')
 
-comp = np.linspace(0,1,6)
-factors1 = [x/100 for x in factors1]
-factors2 = [x/100 for x in factors2]
+#comp = np.linspace(0,1,6)
+factors1 = [x for x in factors1[1:10]]
+factors2 = [x for x in factors2[1:10]]
 
 plt.figure()
 plt.title('Measured At% vs True, on DSTA spectra')

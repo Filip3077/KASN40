@@ -9,9 +9,17 @@ import hyperspy.api as hs
 import numpy as np
 import scipy.misc
 
-def cut_spectrum_bottom(hs,at):
+def cut_spectrum_bottom(hz,at):
     at=float(at);
-    hs.isig[0:at].data-=hs.isig[0:at].data;
+    hz.isig[0:at].data-=hz.isig[0:at].data;
+    return None
+def cut_spectrum_top(hz,at):
+    at=float(at);
+    hz.isig[at:-1].data-=hz.isig[at:-1].data;
+    return None
+def cut_spectrum_range(hz,start,stop):
+    start,stop=float(start),float(stop);
+    hz.isig[start:stop].data-=hz.isig[start:stop];
     return None
 
 class EdxMat:
@@ -84,15 +92,16 @@ class CoreShellSpec:
          else:
              self.core=core;
              self.shell=shell;
-         self.full=self.core+self.shell   
+         self.full=self.core+self.shell   #Ensures backwards compatibility
          self.base=a;
-         self
      def getmatr(self):
          '''Returns the matrix representing the entire core-shell particle'''
          return self.core+self.shell
      def is_signal(self):
          return self.signal;
      def add_background(self,backspec, thickness):
+         '''Adds a background to the core-shell particle. The thickness is a multiplier\n
+         on the original intensity.'''
          for i in range(self.base.size):
              for j in range(self.base.size):
                  if self.signal:
@@ -101,16 +110,18 @@ class CoreShellSpec:
                      self.core[i][j]+=backspec.data*thickness;
                      
      def add_core_component(self, compspec,frac):
-         '''Adds an element to the core. Only valid for small additions (frac<<1)'''
+         '''Adds an element to the core, setting its fraction to frac. Adding multiple elements\n
+         will change this fraction.'''
          for i in range(self.base.size):
             for j in range(self.base.size):
                 if self.signal:
                      self.core.data[i][j]=self.core.data[i][j]*(1-frac)+compspec.data*frac*self.base.core[i,j];
-            else:
+                else:
                      self.core[i][j]=self.core[i][j]*(1-frac)+compspec.data*frac*self.base.core[i,j];
                      
      def add_shell_component(self,compspec,frac):
-         '''Adds an element to the shell. Only valid for small additions (frac<<1)'''
+         '''Adds an element to the shell, setting its fraction to frac. Adding multiple elements\n
+         will change this fraction.'''
          for i in range(self.base.size):
              for j in range(self.base.size):
                  if self.signal:

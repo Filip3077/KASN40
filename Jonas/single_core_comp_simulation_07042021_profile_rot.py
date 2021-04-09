@@ -21,26 +21,27 @@ import numpy as np
 from loadassign import checkLoadFit
 from scipy.ndimage import gaussian_filter
 from k_factors import silver_k_factor
+from radial_profile import transfer_elements
 sAgPure = hs.load("./Spectra/20nm cube Cu0Ag100.msa",signal_type="EDS_TEM")
 sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
 sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
-sFe=hs.load("./Spectra/20 nm cube Fe SSD.msa", signal_type="EDS_TEM")
-sAu=hs.load("./Spectra/20 nm cube Au.msa", signal_type="EDS_TEm")
+#sFe=hs.load("./Spectra/20 nm cube Fe SSD.msa", signal_type="EDS_TEM")
+#sAu=hs.load("./Spectra/20 nm cube Au.msa", signal_type="EDS_TEm")
 #cal = hs.load("./Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")
 #sAgPure=setCalibration(sAgPure,cal)
 #sCuPure=setCalibration(sCuPure,cal)
 #sCBack=setCalibration(sCBack,cal)
 k=0.01*float(input("Input core copper fraction (%):"))
 dens = 20**-1
-thickness=0
-dim=2
+thickness=2
+dim=int(input("Input decomposition dimension :"))
 L=len(sAgPure.inav)
 ratios=np.linspace(0,1,11);
 cores=np.zeros((1,11,L));
 shells=np.zeros((1,11,L))
 
 for i in range(len(ratios)):#For some reason range(ratios) does not work
-    cores[0][i]=0.5*(k*sCuPure.data+(1-k)*sAgPure.data)+0.5*sFe.data
+    cores[0][i]=k*sCuPure.data+(1-k)*sAgPure.data
     shells[0][i]=(1-ratios[i])*sAgPure.data+ratios[i]*sCuPure.data
 x=[];
 a=[];
@@ -69,15 +70,15 @@ slist=list(map(lambda x: hs.signals.Signal1D(x), shell))
 #plist=parts
 for a in plist:
     a.add_poissonian_noise()# Adds poissonian noise to the existing spectra.
-    a=a.map(gaussian_filter,sigma=1)
+    a=a.map(gaussian_filter,sigma=2)
 cal = hs.load("./Spectra/20 nm cube Fe SSD.msa",signal_type="EDS_TEM")#Kalibreringsdata
 
 # For nicer plots, HyperSpy needs some meta data:
 for a in plist:
     a=setCalibration(a, cal)
     cut_spectrum_bottom(a,1500.0)
-    a.add_elements(['Fe'])
-    a.add_lines(['Fe_Ka'])
+    cut_spectrum_top(a,8300.0)
+    a=a.rebin([2,2,10])
 #Make image
 imList=[y.get_lines_intensity() for y in plist]
 #for im in imList:
@@ -91,13 +92,14 @@ sFac=[];
 NMFparts=[];
 cchoice=[];
 schoice=[];
-fefac=silver_k_factor(sFe,['Fe'],['Fe_Ka'])
-kfacs = [1,0.72980399,fefac]
+kfacs = [1,0.72980399]
 for i in range(len(plist)):
     plist[i].decomposition(True,algorithm='NMF',output_dimension =dim) # The "True" variable tells the function to normalize poissonian noise.
     factors = plist[i].get_decomposition_factors() 
     loadings =plist[i].get_decomposition_loadings()
     #c,s=0,1;
+    c,s=checkLoadFit(clist[i],slist[i],factors,loadings, dim,'abs')
+    factors,loadings=transfer_elements(factors,loadings,c,s,50)
     c,s=checkLoadFit(clist[i],slist[i],factors,loadings, dim,'abs')
     cchoice.append(c);
     schoice.append(s);
@@ -118,8 +120,7 @@ for i in range(2):
     csF[i].set_signal_type("EDS_TEM")
     csF[i].get_calibration_from(cal)
     csF[i].add_elements(['Cu','Ag'])
-    csF[i].add_elements(['Fe'])
-    csF[i].add_lines(['Fe_Ka'])
+    csF[i].add_lines()
     bg = csF[i].estimate_background_windows(line_width=[5.0, 7.0])
     intensities.append(csF[i].get_lines_intensity(background_windows=bg))
     
@@ -140,12 +141,14 @@ plt.figure(1002)
 plt.plot(ratios,cchoice)
 plt.figure(1003)
 plt.plot(ratios,quant[0][1].data)
+plt.plot(ratios,np.ones(11)*k*100)
 plt.xlabel('Fraction Cu in shell')
 plt.ylabel('CL estimate of core Cu content')
 plt.title('CL estimate of core Cu content with a true value of '+cont+'%')
 plt.ylim([0, 100])
 plt.figure(1004)
 plt.plot(ratios,quant[1][1].data)
+plt.plot(ratios,ratios*100)
 plt.xlabel('Fraction Cu in shell')
 plt.ylabel('CL estimate of shell Cu content')
 plt.title('CL estimate of shell Cu content with a true value of '+cont+'%')
