@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Feb  8 14:53:32 2021
-
 @author: Jonas Elmroth Nordlander
 KASN20 Projekt VT 2021
 Skriptet testar hur väl det funkar att linjärkombinera spektrum för 100 %\n
 rent Cu och Ag (både i molprocent och mass procent) jämtemot MC-simulerade \n
 spektrum med motsvarande sammansättning.
-
 """
 import matplotlib.pyplot as plt
 import hyperspy.api as hs
