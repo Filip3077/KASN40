@@ -9,6 +9,7 @@ import hyperspy.api as hs
 from coreshellp import CoreShellP, CoreShellSpec
 from specMapDiff import *
 from specerr import *
+import numpy as np
 
 def checkLoadOnly(core,shell,statload,components=2,method='abs'):
    statcoretest = None
@@ -53,8 +54,8 @@ def checkLoadFit(core,shell,statfac,statload,components=2,method='abs'):
    Statspec = cLoadsFacs(statload, statfac)
    statcoretest = None
    statshelltest = None
-   statcore = 1000
-   statshell = 1000
+   statcore = np.inf
+   statshell = np.inf
    if method=='abs':
        for i in range(components):
            statcoretest=SpecErrAbs2D(Statspec.inav[i], core)
