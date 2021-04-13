@@ -97,9 +97,6 @@ for i in range(len(plist)):
     plist[i].decomposition(True,algorithm='NMF',output_dimension =dim) # The "True" variable tells the function to normalize poissonian noise.
     factors = plist[i].get_decomposition_factors() 
     loadings =plist[i].get_decomposition_loadings()
-    #c,s=0,1;
-    c,s=checkLoadFit(clist[i],slist[i],factors,loadings, dim,'abs')
-    factors,loadings=transfer_elements(factors,loadings,c,s,50)
     c,s=checkLoadFit(clist[i],slist[i],factors,loadings, dim,'abs')
     cchoice.append(c);
     schoice.append(s);
