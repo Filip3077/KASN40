@@ -126,7 +126,7 @@ for i in range(6):
     LC_DTSA_diff.append(abs(LC_DTSA_xAg[i] - xAg[i]))
     DTSA_LC_diff.append(abs(DTSA_LC_xAg[i] - xAg[i]))
     LC_LC_diff.append(abs(LC_LC_xAg[i] - xAg[i] ))
-
+#%%Plots
 plt.figure()
 plt.subplot(211)
 plt.title('DTSA spectrum')
@@ -147,3 +147,18 @@ plt.plot(xAg,DTSA_LC_diff,'ro',xAg,LC_LC_diff,'bo')
 
 plt.figure()
 plt.plot(xAg[1:-1]/(1-xAg[1:-1]),I[1:-1],'r',xAg[1:-1]/(1-xAg[1:-1]),ILC[1:-1],'b')
+#%%Extra plottar
+plt.figure(3)
+plt.subplot(211)
+plt.plot(xAg,DTSA_DTSA_xAg,'r',xAg,LC_DTSA_xAg,'b')
+plt.title('Cliff-Lorimer estimate of silver content vs. true silver content')
+plt.legend(['DTSA spectra','Linear combinations'])
+plt.xlabel('$x_{Ag}$ (w/w)')
+plt.ylabel('Est. $x_{Ag}$ (w/w)')
+plt.subplot(212)
+plt.plot(xAg,DTSA_DTSA_diff,'ro',xAg,DTSA_LC_diff,'bo')
+plt.title('Estimated error')
+plt.xlabel('$x_{Ag}$')
+plt.ylabel('Absolute error')
+plt.legend(['DTSA spectra','Linear combinations'])
+plt.tight_layout(pad=0.1)

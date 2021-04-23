@@ -22,9 +22,9 @@ sCuPure = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")
 sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
 cal = hs.load("./Spectra/20nm cube Cu100Ag0.msa",signal_type="EDS_TEM")#hs.load("./Spectra/20 nm cube Fe SSD.msa",signal_type="EDS_TEM")
 kfacs = [1,0.72980399]
-x=CoreShellP_3D(50,20.0,2.0,1,1,1);
-core_spec=0.9*sCuPure.data+0.1*sAgPure.data
-shell_spec=0.9*sAgPure.data+0.1*sCuPure.data
+x=CoreShellP_3D(50,20.0,15.0,1,1,1);
+core_spec=0.1*sCuPure.data+0.9*sAgPure.data
+shell_spec=0.1*sAgPure.data+0.9*sCuPure.data
 a=CoreShellSpec_3D(x,core_spec,shell_spec,False)
 b=a.getmatr()
 p=hs.signals.Signal1D(b.data)
@@ -40,8 +40,9 @@ p.axes_manager[-1].name = 'E'
 p.get_calibration_from(cal)
 p.add_elements(['Ag','Cu'])
 p.add_lines(['Ag_La','Cu_Ka'])
+p=p.map(gaussian_filter,sigma=2.0)
 
-p.decomposition(True, algorithm='sklearn_pca',output_dimension=2)
+p.decomposition(True, algorithm='NMF',output_dimension=2)
 factors=p.get_decomposition_factors()
 loadings=p.get_decomposition_loadings()
 factors.set_signal_type('EDS_TEM')
