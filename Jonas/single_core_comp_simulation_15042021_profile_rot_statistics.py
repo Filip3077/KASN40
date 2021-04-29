@@ -42,6 +42,8 @@ k=0.01*float(input("Input core copper fraction (%):"))
 dens = 20**-1
 thickness=2
 dim=int(input("Input decomposition dimension :"))
+gb=bool(int(input("Gaussian blur? (1/0) :")))
+tf=bool(int(input("Use radial profile to transfer elements? (1/0):")))
 L=len(sAgPure.inav)
 ratios=np.linspace(0,1,11);
 cores=np.zeros((11,L));
@@ -97,7 +99,8 @@ for u in range(rep):
 
     for a in plist:
         a.add_poissonian_noise()# Adds poissonian noise to the existing spectra.
-        a=a.map(gaussian_filter,sigma=2)
+        if gb==True:
+            a=a.map(gaussian_filter,sigma=2)
         
 
 # For nicer plots, HyperSpy needs some meta data:
@@ -125,8 +128,9 @@ for u in range(rep):
         factors = plist[i].get_decomposition_factors() 
         loadings =plist[i].get_decomposition_loadings()
     #c,s=0,1;
-        c,s=checkLoadFit(clist[i],slist[i],factors,loadings, dim,'abs')
-        factors,loadings=transfer_elements(factors,loadings,c,s,50)
+        if tf==True:
+            c,s=checkLoadFit(clist[i],slist[i],factors,loadings, dim,'abs')
+            factors,loadings=transfer_elements(factors,loadings,c,s,50)
         c,s=checkLoadFit(clist[i],slist[i],factors,loadings, dim,'abs')
         cchoice.append(c);
         schoice.append(s);

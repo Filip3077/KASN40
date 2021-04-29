@@ -27,6 +27,7 @@ core_spec=0.1*sCuPure.data+0.9*sAgPure.data
 shell_spec=0.1*sAgPure.data+0.9*sCuPure.data
 a=CoreShellSpec_3D(x,core_spec,shell_spec,False)
 b=a.getmatr()
+#%%Signal metadata
 p=hs.signals.Signal1D(b.data)
 
 p.set_signal_type("EDS_TEM")
@@ -40,8 +41,14 @@ p.axes_manager[-1].name = 'E'
 p.get_calibration_from(cal)
 p.add_elements(['Ag','Cu'])
 p.add_lines(['Ag_La','Cu_Ka'])
-p=p.map(gaussian_filter,sigma=2.0)
+#p.map(gaussian_filter,sigma=2.0)
+p.rebin(scale=[2,2,2,1])
 
+#%%PCA
+p.decomposition(True,algorithm='sklearn_pca')
+p.plot_explained_variance_ratio()
+
+#%%Decomposition
 p.decomposition(True, algorithm='NMF',output_dimension=2)
 factors=p.get_decomposition_factors()
 loadings=p.get_decomposition_loadings()

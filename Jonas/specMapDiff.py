@@ -19,7 +19,7 @@ def redBlueMap(im,supTitle=None, label=None):
                             colorbar='single', vmin='1th', vmax='99th', scalebar='all',
                             scalebar_color='black', suptitle_fontsize=16,
                             padding={'top':0.8, 'bottom':0.10, 'left':0.05,
-                                     'right':0.85, 'wspace':0.20, 'hspace':0.10})
+                                     'right':0.85, 'wspace':0.20, 'hspace':0.30})
     else:
       hs.plot.plot_images(im, suptitle=supTitle, label=label,tight_layout=True, cmap='RdYlBu_r', axes_decor='off',
                             colorbar='single', vmin='1th', vmax='99th', scalebar='all',

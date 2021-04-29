@@ -29,7 +29,7 @@ sCBack=hs.load("./Spectra/Carbonbackground.msa", signal_type="EDS_TEM")
 #sCBack=setCalibration(sCBack,cal)
 k=0.01*float(input("Input core copper fraction (%):"))
 cont=str(100*k)
-dens = 20**-1
+dens = 100**-1
 thickness=1
 dim=3
 L=len(sAgPure.inav)
