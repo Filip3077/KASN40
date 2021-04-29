@@ -1,4 +1,4 @@
-%matplotlib qt
+
 import hyperspy.api as hs
 import math
 import numpy as np
