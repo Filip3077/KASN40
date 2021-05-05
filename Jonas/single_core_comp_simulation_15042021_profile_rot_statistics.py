@@ -31,7 +31,7 @@ true_tquant=[]
 terr=[]
 tcerr=[]
 tserr=[]
-rep=10;
+rep=int(input('Nr of repitions: '))
 #sFe=hs.load("./Spectra/20 nm cube Fe SSD.msa", signal_type="EDS_TEM")
 #sAu=hs.load("./Spectra/20 nm cube Au.msa", signal_type="EDS_TEm")
 #cal = hs.load("./Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")
@@ -138,7 +138,8 @@ for u in range(rep):
         cFac.append(factors.inav[c]);
         sFac.append(factors.inav[s]);
         NMFparticle1 = NMFspec1.inav[c] + NMFspec1.inav[s]
-        #orBlueMapCuAg(factors,loadings,'NMF')
+        if rep==1:
+            orBlueMapCuAg(factors,loadings,'NMF')
         err.append(SpecErrAbs2D(NMFparticle1,plist[i]));
         coreerr.append(SpecErrAbs2D(NMFspec1.inav[c],clist[i]));
         shellerr.append(SpecErrAbs2D(NMFspec1.inav[s],slist[i]));

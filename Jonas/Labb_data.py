@@ -42,11 +42,12 @@ for i in range(len(p22)):
     p22[i].axes_manager['y'].units = 'nm'
     p22[i].axes_manager[-1].name = 'E'
     p22[i].axes_manager['E'].units='eV'
+    p22[i].axes_manager['E'].offset=-200;
     p22[i].axes_manager['E'].scale=10;
     p22[i].axes_manager['x'].scale=0.1666;
     p22[i].axes_manager['y'].scale=0.1666;
     p22[i].add_elements(['Au','Zn','C','Cu'])
-    p22[i].add_lines(['Au_La','Zn_La','C_Ka','Cu_Ka'])
+    p22[i].add_lines(['Au_Ma','Zn_La','C_Ka','Cu_Ka'])
     p22[i].change_dtype('float64')
     p22[i]=p22[i].rebin(scale=[5,5,1])
     im22.append(p22[i].get_lines_intensity())
@@ -60,8 +61,9 @@ for i in range(len(p30)):
     p30[i].axes_manager[-1].name = 'E'
     p30[i].axes_manager['E'].units='eV'
     p30[i].axes_manager['E'].scale=10;
+    p30[i].axes_manager['E'].offset=170;
     p30[i].add_elements(['Au','Zn','C','Cu'])
-    p30[i].add_lines(['Au_La','Zn_La','C_Ka','Cu_Ka'])
+    p30[i].add_lines(['Au_Ma','Zn_La','C_Ka','Cu_Ka'])
     p30[i].change_dtype('float64')
     p30[i]=p30[i].rebin(scale=[5,5,1])
     im30.append(p30[i].get_lines_intensity());
@@ -150,7 +152,7 @@ p30[0].plot_explained_variance_ratio();
 #%%NMF 30_1
 p30[0].decomposition(True, algorithm='NMF', output_dimension=3)
 if len(factors30)>0:
-    factors[0]=p30[0].get_decomposition_factors()
+    factors30[0]=p30[0].get_decomposition_factors()
 else:
     factors30.append(p30[0].get_decomposition_factors());
 if len(loadings30)>0:
@@ -215,7 +217,7 @@ redBlueMap(im30[2],'30 nm particle 3')
 hs.plot.plot_spectra(factors30[2].isig[0.0:10000.0],style='cascade')
 plt.title('30 nm particle 3')
 
-hs.plot.plot_images(loadings30[0],suptitle='30 nm particle 3', cmap='mpl_colors',
+hs.plot.plot_images(loadings30[2],suptitle='30 nm particle 3', cmap='mpl_colors',
                     axes_decor='off', per_row=3,
                     scalebar=[0], scalebar_color='white',
                     padding={'top': 0.95, 'bottom': 0.05,
@@ -224,7 +226,7 @@ hs.plot.plot_images(loadings30[0],suptitle='30 nm particle 3', cmap='mpl_colors'
 p30[3].decomposition('sklearn_pca')
 p30[3].plot_explained_variance_ratio();
 #%%NMF 30_4
-p30[3].decomposition(True, algorithm='NMF', output_dimension=3)
+p30[3].decomposition(True, algorithm='NMF', output_dimension=5)
 if len(factors30)>3:
     factors30[3]=p30[3].get_decomposition_factors()
 else:
@@ -245,12 +247,13 @@ hs.plot.plot_images(loadings30[3],suptitle='30 nm particle 4', cmap='mpl_colors'
                     scalebar=[0], scalebar_color='white',
                     padding={'top': 0.95, 'bottom': 0.05,
                              'left': 0.05, 'right':0.78})
-#%%Kvantifiera sista partikeln
-factors30[3].datafa
-factors30[3].set_signal_type("EDS_TEM")
-factors30[3].get_calibration_from(p30[3])
-factors30[3].add_elements(['Zn','Au'])
-factors30[3].add_lines(['Zn_La','Au_Ma'])
-bg = factors30[3].estimate_background_windows(line_width=[5.0, 7.0])
-intensities=factors30[3].get_lines_intensity(background_windows=bg)
-quant=factors30[3].quantification(intensities,method='CL',factors=[1.696,1.659],composition_units='weight')
+#%%Kvantifiera partiklar
+quant30=[]
+for f in factors30:
+    f.set_signal_type("EDS_TEM")
+    f.get_calibration_from(p30[3])
+    f.add_elements(['Au','Zn'])
+    f.add_lines(['Au_Ma','Zn_La'])
+    bg = f.estimate_background_windows(line_width=[5.0, 7.0])
+    intensities=f.get_lines_intensity(background_windows=bg)
+    quant30.append(f.quantification(intensities,method='CL',factors=[1.696,1.659],composition_units='weight'))

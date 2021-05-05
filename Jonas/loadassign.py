@@ -56,6 +56,8 @@ def checkLoadFit(core,shell,statfac,statload,components=2,method='abs'):
    statshelltest = None
    statcore = np.inf
    statshell = np.inf
+   index_c=-1;
+   index_s=-1;
    if method=='abs':
        for i in range(components):
            statcoretest=SpecErrAbs2D(Statspec.inav[i], core)
@@ -67,7 +69,7 @@ def checkLoadFit(core,shell,statfac,statload,components=2,method='abs'):
                 statshell = statshelltest
                 index_s = i
            if index_c == index_s:
-               print('Warning! It guessed the same component for core and shell.')
+                   print('Warning! It guessed the same component for core and shell.')
    elif method=='neuc':
         for i in range(components):
            statcoretest=SpecErrNEuc(Statspec.inav[i], core)
@@ -78,8 +80,9 @@ def checkLoadFit(core,shell,statfac,statload,components=2,method='abs'):
            if statshelltest < statshell:
                statshell = statshelltest
                index_s = i
-           if index_c == index_s:
-              print('Warning! It guessed the same component for core and shell.')
+           if 'index_s' and 'index_c' in locals(): 
+               if index_c == index_s:
+                   print('Warning! It guessed the same component for core and shell.')
    else:
        print(method+" is not a valid comparison method. Enter 'abs' or 'neuc'")
    return index_c,index_s #index för den som bäst passar core respektive shell
