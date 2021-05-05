@@ -42,7 +42,7 @@ for i in range(len(ps)):
     #ps[i].axes_manager['x'].scale=0.1666;
     #ps[i].axes_manager['y'].scale=0.1666;
     ps[i].add_elements(['Ni','Co','O','C','Cu'])
-    ps[i].add_lines(['O_Ka','Co_Ka','Ni_Kb','C_Ka','Cu_Ka'])
+    ps[i].add_lines(['O_Ka','Co_Ka','Ni_Ka','C_Ka','Cu_Ka'])
     ps[i].change_dtype('float64')
     ps[i]=ps[i].rebin(scale=[2,2,1])
     ims.append(ps[i].get_lines_intensity())
@@ -178,10 +178,12 @@ hs.plot.plot_images(loadings[4],suptitle='Site 5', cmap='mpl_colors',
                              'left': 0.05, 'right':0.78})
 
 #%%Kvantifiera sista partikeln
-factors30[3].set_signal_type("EDS_TEM")
-factors30[3].get_calibration_from(p30[3])
-factors30[3].add_elements(['Au','Zn'])
-factors30[3].add_lines(['Zn_La','Au_Ma'])
-bg = factors30[3].estimate_background_windows(line_width=[5.0, 7.0])
-intensities=factors30[3].get_lines_intensity(background_windows=bg)
-quant=factors30[3].quantification(intensities,method='CL',factors=[1.696,1.659],composition_units='weight')
+quant=[]
+for f in factors:
+    f.set_signal_type("EDS_TEM")
+    f.get_calibration_from(p5)
+    f.add_elements(['Ni','Co','O'])#,'Cu','C'
+    f.add_lines(['Ni_Ka','Co_Ka','O_Ka'])#,'Cu_Ka','C_Ka'
+    bg = f.estimate_background_windows(line_width=[2.0, 5.0])
+    intensities=f.get_lines_intensity(background_windows=bg)
+    quant.append(f.quantification(intensities,method='CL',factors=[1.222,1.219,1.903],composition_units='weight'))

@@ -46,6 +46,8 @@ for i in range(len(p22)):
     p22[i].axes_manager['E'].scale=10;
     p22[i].axes_manager['x'].scale=0.1666;
     p22[i].axes_manager['y'].scale=0.1666;
+    #cut_spectrum_bottom(p22[i],900)
+    #cut_spectrum_range(p22[i],7900,8400)
     p22[i].add_elements(['Au','Zn','C','Cu'])
     p22[i].add_lines(['Au_Ma','Zn_La','C_Ka','Cu_Ka'])
     p22[i].change_dtype('float64')
@@ -62,6 +64,8 @@ for i in range(len(p30)):
     p30[i].axes_manager['E'].units='eV'
     p30[i].axes_manager['E'].scale=10;
     p30[i].axes_manager['E'].offset=170;
+    #cut_spectrum_bottom(p30[i],900.0)
+    #cut_spectrum_range(p30[i],7900.0,8400.0)
     p30[i].add_elements(['Au','Zn','C','Cu'])
     p30[i].add_lines(['Au_Ma','Zn_La','C_Ka','Cu_Ka'])
     p30[i].change_dtype('float64')
