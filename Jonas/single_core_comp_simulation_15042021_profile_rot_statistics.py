@@ -38,12 +38,16 @@ rep=int(input('Nr of repitions: '))
 #sAgPure=setCalibration(sAgPure,cal)
 #sCuPure=setCalibration(sCuPure,cal)
 #sCBack=setCalibration(sCBack,cal)
-k=0.01*float(input("Input core copper fraction (%):"))
+k=0.01*float(input("Input core copper fraction (%): "))
 dens = 20**-1
 thickness=2
+<<<<<<< Updated upstream
 dim=int(input("Input decomposition dimension :"))
 gb=bool(int(input("Gaussian blur? (1/0) :")))
 tf=bool(int(input("Use radial profile to transfer elements? (1/0):")))
+=======
+dim=int(input("Input decomposition dimension : "))
+>>>>>>> Stashed changes
 L=len(sAgPure.inav)
 ratios=np.linspace(0,1,11);
 cores=np.zeros((11,L));
