@@ -12,15 +12,18 @@ from coreshellfunctions import *
 
 #%% Particle generation
 
-core_spect = hs.load('../Spectra/core.msa').data
-shell_spect = hs.load('../Spectra/shell.msa').data
+core_spect = hs.load('../../../Spectra/core.msa').data
+shell_spect = hs.load('../../../Spectra/shell.msa').data
 
 size = 50
-a = genfullparticle(size, 20, 15, core_spect, shell_spect, True, 0.049,0.049)
-s = a.full
+# a = genfullparticle(size, 20, 15, core_spect, shell_spect, True, 0.049,0.049)
+# s = a.full
+a = CoreShellP(50, 20, 15, 1/20, 1/20, 1)
+a = CoreShellSpec(a, core_spect, shell_spect)
+s = a.core+a.shell
 s.add_poissonian_noise()
 
-cal = hs.load("../Spectra/shell.msa",signal_type="EDS_TEM")
+cal = hs.load("../../../Spectra/shell.msa",signal_type="EDS_TEM")
 s = setCalibration(s, cal)
 
 s.change_dtype('float64')
@@ -112,7 +115,7 @@ a2 = res2.x; R2 = np.eye(nfac); R2[0,:] = [np.cos(a2), -np.sin(a2)]; R2[1,:] = [
 s1_factors_rot = s1_factors.deepcopy(); s1_factors_rot.data = np.matmul(s1_factors.data.T,R1).T
 s1_loadings_rot = s1_loadings.deepcopy(); s1_loadings_rot.data = np.matmul(s1_loadings.data.T,R1).T
 
-s2_factors_rot = s2_factors.deepcopy(); s2_factors_rot.data = np.matmul(s1_factors.data.T,R1).T
+s2_factors_rot = s2_factors.deepcopy(); s2_factors_rot.data = np.matmul(s2_factors.data.T,R2).T
 s2_loadings_rot = s2_loadings.deepcopy(); s2_loadings_rot.data = np.matmul(s2_loadings.data.T,R2).T
 
 allFacs_rot = hs.signals.Signal1D(np.random.random((4, 2048)),signal_type="EDS_TEM")
@@ -182,7 +185,7 @@ R1 = amoeba_rotation(SumSquare1.data[0:nfac]); R2 = amoeba_rotation(SumSquare2.d
 s1_factors_rot = s1_factors.deepcopy(); s1_factors_rot.data = np.matmul(s1_factors.data.T,R1).T
 s1_loadings_rot = s1_loadings.deepcopy(); s1_loadings_rot.data = np.matmul(s1_loadings.data.T,R1).T
 
-s2_factors_rot = s2_factors.deepcopy(); s2_factors_rot.data = np.matmul(s1_factors.data.T,R1).T
+s2_factors_rot = s2_factors.deepcopy(); s2_factors_rot.data = np.matmul(s2_factors.data.T,R2).T
 s2_loadings_rot = s2_loadings.deepcopy(); s2_loadings_rot.data = np.matmul(s2_loadings.data.T,R2).T
 
 allFacs_rot = hs.signals.Signal1D(np.random.random((4, 2048)),signal_type="EDS_TEM")
@@ -206,14 +209,14 @@ hs.plot.plot_images([s1_loadings_rot, s2_loadings_rot],suptitle='Rotated Loading
 
 #%% Quantification
 
-core_spect = hs.load('../Spectra/core.msa'); shell_spect = hs.load('../Spectra/shell.msa')
+core_spect = hs.load('../../../Spectra/core.msa'); shell_spect = hs.load('../../../Spectra/shell.msa')
 kfac = [1,0.72980399]
 
-wtCuCore, wtAgCore = quantify(core_spect, kfac, lineWidth, cal)
-wtCuShell, wtAgShell = quantify(shell_spect, kfac, lineWidth, cal)
+# wtCuCore, wtAgCore = quantify(core_spect, kfac, lineWidth, cal)
+# wtCuShell, wtAgShell = quantify(shell_spect, kfac, lineWidth, cal)
 
-wtCu = np.zeros(len(allFacs_rot)); wtAg = np.zeros(len(allFacs_rot))
-for i in range(len(allFacs_rot)):
-    wtCu[i], wtAg[i] = quantify(allFacs_rot, kfac)
+# wtCu = np.zeros(len(allFacs_rot)); wtAg = np.zeros(len(allFacs_rot))
+# for i in range(len(allFacs_rot)):
+#     wtCu[i], wtAg[i] = quantify(allFacs_rot, kfac)
     
 

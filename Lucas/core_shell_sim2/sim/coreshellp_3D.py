@@ -1,0 +1,136 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Feb  9 14:20:11 2021
+
+@author: Jonas
+"""
+import math
+import hyperspy.api as hs
+import numpy as np
+import scipy.misc
+
+def cut_spectrum_bottom(hz,at):
+    at=float(at);
+    hz.isig[0:at].data-=hz.isig[0:at].data;
+    return None
+def cut_spectrum_top(hz,at):
+    at=float(at);
+    hz.isig[at:-1].data-=hz.isig[at:-1].data;
+    return None
+def cut_spectrum_range(hz,start,stop):
+    start,stop=float(start),float(stop);
+    hz.isig[start:stop].data-=hz.isig[start:stop];
+    return None
+
+class EdxMat_3D:
+    def __init__(self,size,r: float,dens:float,l: float):
+        '''size: defines the 'picture' size as size x size pixels\n
+        r: defines the radius of the spherical particle\n
+        dens: density of the material the particle is made of\n
+        l: pixel size in the same unit as r (i.e. the area is l^2)'''
+        self.size=size;
+        self.r=r;
+        self.dens=dens;
+        self.l=l;
+        rred=r/l;
+        self.mid= float((size-1)/2);#-1 because indices start from zero
+        #The constructor now constructs a matrix using the input arguments
+        mat=np.zeros((size,size,size));
+        self.mat=mat;
+        for i in range(size):
+            for j in range(size):
+                for k in range(size):
+                    if rred**2>=((i-self.mid)**2+(j-self.mid)**2+(k-self.mid)**2):
+                        mat[i][j][k]=1
+        
+    def __thick(self,n,m,p):
+        nr=n-self.mid;
+        mr=m-self.mid;
+        pr=p-self.mid;
+        l=self.l;
+        r=self.r;
+        return math.sqrt(r**2-(nr)**2-(mr)**2)*l**2; 
+    
+
+class CoreShellP_3D:
+    def __init__(self,size,r1:float,r2:float,dens1:float,dens2:float,l:float):
+        '''Constructs an object modeling a core-shell spherical particle.\n
+        The object properties core and shell  are matrices \n
+        modeling the core and shell respectively.\n
+        All arguments are defined as for EdxMat.'''
+        
+        x=EdxMat_3D(size,r1,dens1,l);
+        y=EdxMat_3D(size,r2,dens2,l);
+        self.size=size;
+        self.l=l;
+        if r1>=r2:
+            z=EdxMat_3D(size,r2,dens1,l)
+            self.shell=x.mat-z.mat;
+            self.core=y.mat;
+
+        else:
+            z=EdxMat_3D(size,r1,dens2,l)
+            self.shell=y.mat-z.mat;
+            self.core=x.mat;
+
+
+class CoreShellSpec_3D:
+     def __init__(self,a,spec1,spec2,signal=True):
+         '''Takes a CoreShellP object a and inserts the core spectrum \n
+         spec1 and the shell spectrum spec2 at the appropriate places.\n
+         Both spectra must be HyperSpy 1D signals.'''
+         self.signal=signal
+         L=len(spec1.data)
+         arr=np.empty((a.size,a.size,a.size,L))
+         core=arr.copy()
+         shell = arr.copy()
+         for i in range(0,a.size):
+             for j in range(0,a.size):
+                 for k in range(0,a.size):
+                     core[i,j,k,0:L]=a.core[i,j,k]*spec1.data
+                     shell[i,j,k,0:L]=a.shell[i,j,k]*spec2.data
+         if signal:
+             self.core = hs.signals.Signal1D(core)
+             self.shell = hs.signals.Signal1D(shell)
+         else:
+             self.core=core;
+             self.shell=shell;
+         self.full=self.core+self.shell   #Ensures backwards compatibility
+         self.base=a;
+     def getmatr(self):
+         '''Returns the matrix representing the entire core-shell particle'''
+         return self.core+self.shell
+     def is_signal(self):
+         return self.signal;
+     def add_background(self,backspec, thickness):
+         '''Adds a background to the core-shell particle. The thickness is a multiplier\n
+         on the original intensity.'''
+         for i in range(self.base.size):
+             for j in range(self.base.size):
+                 for k in range(self.base.size):
+                     if self.signal:
+                         self.core.data[i][j][k]+=backspec.data*thickness;
+                     else:
+                         self.core[i][j][k]+=backspec.data*thickness;
+                     
+     def add_core_component(self, compspec,frac):
+         '''Adds an element to the core, setting its fraction to frac. Adding multiple elements\n
+         will change this fraction.'''
+         for i in range(self.base.size):
+            for j in range(self.base.size):
+                if self.signal:
+                     self.core.data[i][j]=self.core.data[i][j]*(1-frac)+compspec.data*frac*self.base.core[i,j];
+                else:
+                     self.core[i][j]=self.core[i][j]*(1-frac)+compspec.data*frac*self.base.core[i,j];
+                     
+     def add_shell_component(self,compspec,frac):
+         '''Adds an element to the shell, setting its fraction to frac. Adding multiple elements\n
+         will change this fraction.'''
+         for i in range(self.base.size):
+             for j in range(self.base.size):
+                 if self.signal:
+                     self.shell.data[i][j]=self.shell.data[i][j]*(1-frac)+compspec.data*frac*self.base.shell[i,j];
+                 else:
+                     self.shell[i][j]=self.shell[i][j]*(1-frac)+compspec.data*frac*self.base.shell[i,j];
+
+    
