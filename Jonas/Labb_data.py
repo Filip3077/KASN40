@@ -72,7 +72,7 @@ for i in range(len(p30)):
     p30[i]=p30[i].rebin(scale=[5,5,1])
     im30.append(p30[i].get_lines_intensity());
 for p in p30:
-    p=p.map(gaussian_filter,sigma=3.0)
+    p=p.map(gaussian_filter,sigma=2.0)
     
 #%%PCA 22_1
 p22[0].decomposition('sklearn_pca')
@@ -154,7 +154,7 @@ hs.plot.plot_images(loadings22[2],suptitle='20 nm particle 3', cmap='mpl_colors'
 p30[0].decomposition('sklearn_pca')
 p30[0].plot_explained_variance_ratio();
 #%%NMF 30_1
-p30[0].decomposition(True, algorithm='NMF', output_dimension=3)
+p30[0].decomposition(True, algorithm='NMF', output_dimension=4)
 if len(factors30)>0:
     factors30[0]=p30[0].get_decomposition_factors()
 else:
@@ -179,7 +179,7 @@ hs.plot.plot_images(loadings30[0],suptitle='30 nm particle 1', cmap='mpl_colors'
 p30[1].decomposition('sklearn_pca')
 p30[1].plot_explained_variance_ratio();
 #%%NMF 30_2
-p30[1].decomposition(True, algorithm='NMF', output_dimension=3)
+p30[1].decomposition(True, algorithm='NMF', output_dimension=4)
 if len(factors30)>1:
     factors[1]=p30[1].get_decomposition_factors()
 else:
@@ -205,7 +205,7 @@ hs.plot.plot_images(loadings30[1],suptitle='30 nm particle 1', cmap='mpl_colors'
 p30[2].decomposition('sklearn_pca')
 p30[2].plot_explained_variance_ratio();
 #%%NMF 30_3
-p30[2].decomposition(True, algorithm='NMF', output_dimension=3)
+p30[2].decomposition(True, algorithm='NMF', output_dimension=4)
 if len(factors30)>2:
     factors[2]=p30[2].get_decomposition_factors()
 else:
@@ -230,7 +230,7 @@ hs.plot.plot_images(loadings30[2],suptitle='30 nm particle 3', cmap='mpl_colors'
 p30[3].decomposition('sklearn_pca')
 p30[3].plot_explained_variance_ratio();
 #%%NMF 30_4
-p30[3].decomposition(True, algorithm='NMF', output_dimension=5)
+p30[3].decomposition(True, algorithm='NMF', output_dimension=3)
 if len(factors30)>3:
     factors30[3]=p30[3].get_decomposition_factors()
 else:
@@ -258,6 +258,6 @@ for f in factors30:
     f.get_calibration_from(p30[3])
     f.add_elements(['Au','Zn'])
     f.add_lines(['Au_Ma','Zn_La'])
-    bg = f.estimate_background_windows(line_width=[5.0, 7.0])
+    #bg = f.estimate_background_windows(line_width=[5.0, 7.0])
     intensities=f.get_lines_intensity(background_windows=bg)
     quant30.append(f.quantification(intensities,method='CL',factors=[1.696,1.659],composition_units='weight'))

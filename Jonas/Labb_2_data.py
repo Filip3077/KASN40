@@ -25,6 +25,12 @@ p3=hs.load('C:\\Users\\Jonas\\Documents\\KASN40 Project course\\Experimentell da
 p4=hs.load('C:\\Users\\Jonas\\Documents\\KASN40 Project course\\Experimentell data\\NiCoO\\NiCoOx site 4.rpl',signal_type='EDS_TEM').T
 p5=hs.load('C:\\Users\\Jonas\\Documents\\KASN40 Project course\\Experimentell data\\NiCoO\\NiCoOx site 5.rpl',signal_type='EDS_TEM').T
 ps=[p1,p2,p3,p4,p5];
+#%%Skära i rymddimensionen
+ps[0]=ps[0].inav[50:230,50:200];
+ps[1]=ps[1].inav[55:200,25:175];
+ps[2]=ps[2].inav[125:256,47:210]
+ps[3]=ps[3].inav[75:200,30:170];
+ps[4]= ps[4].inav[70:200,65:210];
 #%%Behövliga listor
 ims=[];
 factors=[];
@@ -54,7 +60,7 @@ for p in ps:
 ps[0].decomposition('sklearn_pca')
 ps[0].plot_explained_variance_ratio();
 #%%NMF 1
-ps[0].decomposition(True, algorithm='NMF', output_dimension=3)
+ps[0].decomposition(True, algorithm='NMF', output_dimension=4)
 if len(factors)>0:
     factors[0]=ps[0].get_decomposition_factors()
 else:
@@ -104,7 +110,7 @@ hs.plot.plot_images(loadings[1],suptitle='Site 2', cmap='mpl_colors',
 ps[2].decomposition('sklearn_pca')
 ps[2].plot_explained_variance_ratio();
 #%%NMF 3
-ps[2].decomposition(True, algorithm='NMF', output_dimension=3)
+ps[2].decomposition(True, algorithm='NMF', output_dimension=4)
 if len(factors)>2:
     factors[2]=ps[2].get_decomposition_factors()
 else:
@@ -155,7 +161,7 @@ hs.plot.plot_images(loadings[3],suptitle='Site 4', cmap='mpl_colors',
 ps[4].decomposition('sklearn_pca')
 ps[4].plot_explained_variance_ratio();
 #%%NMF 5
-ps[4].decomposition(True, algorithm='NMF', output_dimension=3)
+ps[4].decomposition(True, algorithm='NMF', output_dimension=2)
 if len(factors)>4:
     factors[4]=ps[4].get_decomposition_factors()
 else:
@@ -181,9 +187,10 @@ hs.plot.plot_images(loadings[4],suptitle='Site 5', cmap='mpl_colors',
 quant=[]
 for f in factors:
     f.set_signal_type("EDS_TEM")
-    f.get_calibration_from(p5)
+    #f.axes_manager.signal_axes[0].units='eV'
+    f.get_calibration_from(ps[4])
     f.add_elements(['Ni','Co','O'])#,'Cu','C'
     f.add_lines(['Ni_Ka','Co_Ka','O_Ka'])#,'Cu_Ka','C_Ka'
-    bg = f.estimate_background_windows(line_width=[2.0, 5.0])
-    intensities=f.get_lines_intensity(background_windows=bg)
+    #bg = f.estimate_background_windows(line_width=[3.0, 5.0])
+    intensities=f.get_lines_intensity()
     quant.append(f.quantification(intensities,method='CL',factors=[1.222,1.219,1.903],composition_units='weight'))
