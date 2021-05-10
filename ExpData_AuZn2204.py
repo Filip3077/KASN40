@@ -7,14 +7,14 @@ Created on Fri Apr 23 08:17:19 2021
 
 import hyperspy.api as hs
 import matplotlib.pyplot as plt
-
+from scipy.ndimage import gaussian_filter;
 
 #s20nm =  hs.load("EDS Data_particle*.rlp",stack=True,signal_type="EDS_TEM")
 
-s1 = hs.load("AuZn4.rpl",stack=True,signal_type="EDS_TEM").T
-s2 = hs.load("AuZn2.rpl",stack=True,signal_type="EDS_TEM").T
-s3 = hs.load("AuZn3.rpl",stack=True,signal_type="EDS_TEM").T
-sRef =  hs.load("PureCuFilip.msa",stack=True,signal_type="EDS_TEM")
+s1 = hs.load('C:\\Users\\Jonas\\Documents\\KASN40 Project course\\Experimentell data\\AuZn 30 nm\\EDS Data_particle 4.rpl',stack=True,signal_type="EDS_TEM").T
+s2 = hs.load('C:\\Users\\Jonas\\Documents\\KASN40 Project course\\Experimentell data\\AuZn 30 nm\\EDS Data_particle 2.rpl',stack=True,signal_type="EDS_TEM").T
+s3 = hs.load('C:\\Users\\Jonas\\Documents\\KASN40 Project course\\Experimentell data\\AuZn 30 nm\\EDS Data_particle 3.rpl',stack=True,signal_type="EDS_TEM").T
+sRef =  hs.load("./Spectra/PureCuFilip.msa",stack=True,signal_type="EDS_TEM")
 sRef = sRef.isig[0:1500]
 
 
@@ -33,6 +33,7 @@ s1 = s1.rebin(scale = [4,4,1])
 
 s1_avgcounts = s1.inav[:,:].data.sum()/(s1.data.shape[0]*s1.data.shape[1])
 s1_totcounts = s1.inav[:,:].data.sum()
+s1=s1.map(gaussian_filter,sigma=3.0)
 
 print('\n')
 print("Medelantal counts: "+str(s1_avgcounts))
@@ -57,7 +58,7 @@ s2 = s2.rebin(scale = [4,4,1])
 #s2 = s2.isig[650.0::]
 s2_avgcounts = s2.inav[:,:].data.sum()/(s2.data.shape[0]*s2.data.shape[1])
 s2_totcounts = s2.inav[:,:].data.sum()
-
+s2=s2.map(gaussian_filter,sigma=3.0)
 print('\n')
 print("Medelantal counts: "+str(s2_avgcounts))
 print("Totalt antal counts: " + str(s2_totcounts))
@@ -81,7 +82,7 @@ s3 = s3.rebin(scale = [4,4,1])
 
 s3_avgcounts = s3.inav[:,:].data.sum()/(s3.data.shape[0]*s3.data.shape[1])
 s3_totcounts = s3.inav[:,:].data.sum()
-
+s3=s3.map(gaussian_filter,sigma=3.0)
 print('\n')
 print("Medelantal counts: "+str(s3_avgcounts))
 print("Totalt antal counts: " + str(s3_totcounts))

@@ -72,7 +72,8 @@ else:
 #%%Plotta 1
 
 redBlueMap(ims[0],'Site 1')
-
+for i in range(len(factors[0])):
+    factors[0].inav[i].data/=factors[0].inav[i].data.max()
 hs.plot.plot_spectra(factors[0].isig[0.0:10000.0],style='cascade')
 plt.title('Site 1')
 
@@ -97,7 +98,8 @@ else:
 #%%Plotta 2
 
 redBlueMap(ims[1],'Site 2')
-
+for i in range(len(factors[1])):
+    factors[1].inav[i].data/=factors[1].inav[i].data.max()
 hs.plot.plot_spectra(factors[1].isig[0.0:10000.0],style='cascade')
 plt.title('Site 2')
 
@@ -122,6 +124,8 @@ else:
 #%%Plotta 3
 
 redBlueMap(ims[2],'Site 2')
+for i in range(len(factors[2])):
+    factors[2].inav[i].data/=factors[2].inav[i].data.max()
 
 hs.plot.plot_spectra(factors[2].isig[0.0:10000.0],style='cascade')
 plt.title('Site 2')
@@ -148,7 +152,8 @@ else:
 #%%Plotta 4
 
 redBlueMap(ims[3],'Site 4')
-
+for i in range(len(factors[3])):
+    factors[3].inav[i].data/=factors[3].inav[i].data.max()
 hs.plot.plot_spectra(factors[3].isig[0.0:10000.0],style='cascade')
 plt.title('Site 4')
 
@@ -173,6 +178,8 @@ else:
 #%%Plotta 5
 
 redBlueMap(ims[4],'Site 5')
+for i in range(len(factors[4])):
+    factors[4].inav[i].data/=factors[4].inav[i].data.max()
 
 hs.plot.plot_spectra(factors[4].isig[0.0:10000.0],style='cascade')
 plt.title('Site 5')
