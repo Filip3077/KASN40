@@ -16,19 +16,31 @@ s2 = hs.load('C:\\Users\\Jonas\\Documents\\KASN40 Project course\\Experimentell 
 s3 = hs.load('C:\\Users\\Jonas\\Documents\\KASN40 Project course\\Experimentell data\\AuZn 30 nm\\EDS Data_particle 3.rpl',signal_type="EDS_TEM").T
 sRef =  hs.load("./Spectra/PureCuFilip.msa",signal_type="EDS_TEM")
 sRef = sRef.isig[0:1500]
+s=[s1,s2,s3];
 #%%
-s1.axes_manager[0].name = 'y'
-s1.axes_manager[1].name = 'x'
-s1.axes_manager[-1].name = 'E'
-s1.axes_manager.signal_axes[0].units = 'eV'
-s1.axes_manager['E'].scale = 10
-s1.axes_manager['x'].units = 'nm'
-s1.axes_manager['y'].units = 'nm'
-s1.axes_manager['E'].offset = -200
-s1.axes_manager['y'].scale = 0.22
-s1.axes_manager['x'].scale = 0.22
-#s1.isig[200.0::].inav[::].sum().plot()
-s1 = s1.rebin(scale = [4,4,1])
+
+for z in s:
+    z.axes_manager[0].name = 'y'
+    z.axes_manager[1].name = 'x'
+    z.axes_manager[-1].name = 'E'
+    z.axes_manager.signal_axes[0].units ='eV'
+    z.axes_manager['E'].scale = 10
+    z.axes_manager['x'].units = 'nm'
+    z.axes_manager['y'].units = 'nm'
+    z.axes_manager['E'].offset = -200
+    z.axes_manager['y'].scale = 0.22
+    z.axes_manager['x'].scale = 0.22
+    z.add_elements(['Au','Zn','C','C']) #Lägger in element igen tydligen förs de inte med 
+    z.add_lines(['Au_La','Zn_La','C_Ka','C_Ka'])
+    z.change_dtype('float64')
+    z=z.rebin(scale=[4,4,1])
+s[0]=s[0].rebin(scale=[4,4,1])
+s[1]=s[1].rebin(scale=[4,4,1])
+s[2]=s[2].rebin(scale=[4,4,1])    
+for z in s:
+    z=z.map(gaussian_filter,sigma=3.0)
+#%%
+
 
 s1_avgcounts = s1.inav[:,:].data.sum()/(s1.data.shape[0]*s1.data.shape[1])
 s1_totcounts = s1.inav[:,:].data.sum()
@@ -42,18 +54,7 @@ print('\n')
 
 #%%
 
-s2.axes_manager[0].name = 'y'
-s2.axes_manager[1].name = 'x'
-s2.axes_manager[-1].name = 'E'
-s2.axes_manager.signal_axes[0].units = 'eV'
-s2.axes_manager['E'].scale = 10
-s2.axes_manager['x'].units = 'nm'
-s2.axes_manager['y'].units = 'nm'
-s2.axes_manager['E'].offset = -200
-s2.axes_manager['y'].scale = 0.22
-s2.axes_manager['x'].scale = 0.22
-#s2.isig[200.0::].inav[::].sum().plot()
-s2 = s2.rebin(scale = [4,4,1])
+
 #s2 = s2.isig[650.0::]
 s2_avgcounts = s2.inav[:,:].data.sum()/(s2.data.shape[0]*s2.data.shape[1])
 s2_totcounts = s2.inav[:,:].data.sum()
@@ -66,18 +67,7 @@ print('\n')
 
 #%%
 
-s3.axes_manager[0].name = 'y'
-s3.axes_manager[1].name = 'x'
-s3.axes_manager[-1].name = 'E'
-s3.axes_manager['x'].units = 'nm'
-s3.axes_manager['y'].units = 'nm'
-s3.axes_manager.signal_axes[0].units = 'eV'
-s3.axes_manager['E'].scale = 10
-s3.axes_manager['E'].offset = -200
-s3.axes_manager['y'].scale = 0.22
-s3.axes_manager['x'].scale = 0.22
-s3.isig[200.0::].inav[::].sum().plot()
-s3 = s3.rebin(scale = [4,4,1])
+
 
 s3_avgcounts = s3.inav[:,:].data.sum()/(s3.data.shape[0]*s3.data.shape[1])
 s3_totcounts = s3.inav[:,:].data.sum()
@@ -90,21 +80,13 @@ print('\n')
 #%%
 
 #hs.plot.plot_spectra([s3.isig[300.0::].inav[::].sum(),s2.isig[300.0::].inav[::].sum()])
-s1.add_elements(['Au','Zn','C','C']) #Lägger in element igen tydligen förs de inte med 
-s1.add_lines(['Au_La','Zn_La','C_Ka','C_Ka'])
 
-s2.add_elements(['Au','Zn','C']) #Lägger in element igen tydligen förs de inte med 
-s2.add_lines(['Au_La','Zn_La','C_Ka'])
-
-
-s3.add_elements(['Au','Zn','C']) #Lägger in element igen tydligen förs de inte med 
-s3.add_lines(['Au_La','Zn_La','C_Ka'])
 
 sRef.add_elements(['Cu'])
 sRef.add_lines(['Cu_Ka'])
 
 
-im1 = s1.get_lines_intensity()  #Tar ut två "bilder" en för varje xray signal dvs Ag och Cu
+im1 = s[0].get_lines_intensity()  #Tar ut två "bilder" en för varje xray signal dvs Ag och Cu
 hs.plot.plot_images(im1,  cmap='RdYlBu_r', axes_decor='off',
     colorbar='single', vmin='1th', vmax='99th', scalebar='all',
     scalebar_color='black', suptitle_fontsize=16,
@@ -113,7 +95,7 @@ hs.plot.plot_images(im1,  cmap='RdYlBu_r', axes_decor='off',
 plt.title('Line intensites particle 1')
 
 
-im2 = s2.get_lines_intensity()  #Tar ut två "bilder" en för varje xray signal dvs Ag och Cu
+im2 = s[1].get_lines_intensity()  #Tar ut två "bilder" en för varje xray signal dvs Ag och Cu
 hs.plot.plot_images(im2,  cmap='RdYlBu_r', axes_decor='off',
     colorbar='single', vmin='1th', vmax='99th', scalebar='all',
     scalebar_color='black', suptitle_fontsize=16,
@@ -121,7 +103,7 @@ hs.plot.plot_images(im2,  cmap='RdYlBu_r', axes_decor='off',
              'right':0.85, 'wspace':0.20, 'hspace':0.10})
 plt.title('Line intensites particle 2')
 
-im3 = s3.get_lines_intensity()  #Tar ut två "bilder" en för varje xray signal dvs Ag och Cu
+im3 = s[2].get_lines_intensity()  #Tar ut två "bilder" en för varje xray signal dvs Ag och Cu
 hs.plot.plot_images(im3,  cmap='RdYlBu_r', axes_decor='off',
     colorbar='single', vmin='1th', vmax='99th', scalebar='all',
     scalebar_color='black', suptitle_fontsize=16,
@@ -130,31 +112,31 @@ hs.plot.plot_images(im3,  cmap='RdYlBu_r', axes_decor='off',
 plt.title('Line intensites particle 3')
 
 #%%
-s1.decomposition()
-s1.plot_explained_variance_ratio()
+s[0].decomposition()
+s[0].plot_explained_variance_ratio()
 plt.title('Explained variance particle 1')
 
-s2.decomposition()
-s2.plot_explained_variance_ratio()
+s[1].decomposition()
+s[1].plot_explained_variance_ratio()
 plt.title('Explained variance particle 2')
 
-s3.decomposition()
-s3.plot_explained_variance_ratio()
+s[2].decomposition()
+s[2].plot_explained_variance_ratio()
 plt.title('Explained variance particle 3')
 
 
 #%%
-s1.decomposition(algorithm = 'NMF', output_dimension = 3)
-s1_loads = s1.get_decomposition_loadings()
-s1_facs = s1.get_decomposition_factors()
+s[0].decomposition(algorithm = 'NMF', output_dimension = 3)
+s1_loads = s[0].get_decomposition_loadings()
+s1_facs = s[0].get_decomposition_factors()
 
-s2.decomposition(algorithm = 'NMF', output_dimension = 3)
-s2_loads = s2.get_decomposition_loadings()
-s2_facs = s2.get_decomposition_factors()
+s[1].decomposition(algorithm = 'NMF', output_dimension = 3)
+s2_loads = s[1].get_decomposition_loadings()
+s2_facs = s[1].get_decomposition_factors()
 
-s3.decomposition(algorithm = 'NMF', output_dimension = 3)
-s3_loads = s3.get_decomposition_loadings()
-s3_facs = s3.get_decomposition_factors()
+s[2].decomposition(algorithm = 'NMF', output_dimension = 3)
+s3_loads = s[2].get_decomposition_loadings()
+s3_facs = s[2].get_decomposition_factors()
 #%%
 hs.plot.plot_images(s1_loads, cmap='mpl_colors',
             axes_decor='off', per_row=2,
@@ -240,19 +222,19 @@ plt.axvline(8040, c='k', ls=':', lw=0.5)
 plt.text(x=8040, y=0.8, s='Cu-K$_\\alpha$', color='k')
 plt.axvline(8040, c='k', ls=':', lw=0.5)
 #%% 
-s = s3.sum().sum()#s3_facs.inav[0]
+z = s1_facs.inav[0]
 
-s.set_elements(['Au','Zn'])
-s.set_lines(['Au_La','Zn_La'])
+z.set_elements(['Au','Zn'])
+z.set_lines(['Au_La','Zn_La'])
 
 
 kfac = [2.585,1.401]
 
-bw = s.estimate_background_windows(line_width=[1.7, 2.0])
-s.plot(background_windows=bw)
+bw = z.estimate_background_windows(line_width=[1.7, 2.0])
+z.plot(background_windows=bw)
 
-intensities = s.get_lines_intensity(background_windows=bw)
-atomic_percent = s.quantification(intensities, method='CL',
+intensities = z.get_lines_intensity(background_windows=bw)#
+atomic_percent = z.quantification(intensities, method='CL',composition_units='weight',
                                   factors=kfac)
 
 

@@ -31,7 +31,7 @@ true_tquant=[]
 terr=[]
 tcerr=[]
 tserr=[]
-rep=int(input('Nr of repitions: '))
+rep=int(input('Nr of repetions: '))
 #sFe=hs.load("./Spectra/20 nm cube Fe SSD.msa", signal_type="EDS_TEM")
 #sAu=hs.load("./Spectra/20 nm cube Au.msa", signal_type="EDS_TEm")
 #cal = hs.load("./Spectra/20nm cube Cu20Ag80.msa",signal_type="EDS_TEM")
@@ -39,14 +39,14 @@ rep=int(input('Nr of repitions: '))
 #sCuPure=setCalibration(sCuPure,cal)
 #sCBack=setCalibration(sCBack,cal)
 k=0.01*float(input("Input core copper fraction (%): "))
-dens = 20**-1
+dens = 30**-1
 thickness=2
 
 dim=int(input("Input decomposition dimension :"))
 gb=bool(int(input("Gaussian blur? (1/0) :")))
 tf=bool(int(input("Use radial profile to transfer elements? (1/0):")))
 
-dim=int(input("Input decomposition dimension : "))
+
 L=len(sAgPure.inav)
 ratios=np.linspace(0,1,11);
 cores=np.zeros((11,L));
@@ -111,7 +111,7 @@ for u in range(rep):
         a=setCalibration(a, cal)
         cut_spectrum_bottom(a,1500.0)
         cut_spectrum_top(a,8300.0)
-        a=a.rebin([2,2,10])
+        a=a.rebin(scale=[2,2,10])
 #Make image
     imList=[y.get_lines_intensity() for y in plist]
 #for im in imList:

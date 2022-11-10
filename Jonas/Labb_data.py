@@ -259,5 +259,5 @@ for f in factors30:
     f.add_elements(['Au','Zn'])
     f.add_lines(['Au_Ma','Zn_La'])
     #bg = f.estimate_background_windows(line_width=[5.0, 7.0])
-    intensities=f.get_lines_intensity(background_windows=bg)
+    intensities=f.get_lines_intensity()#background_windows=bg
     quant30.append(f.quantification(intensities,method='CL',factors=[1.696,1.659],composition_units='weight'))
